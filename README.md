@@ -42,6 +42,8 @@ Demo sign-ins (password `handoff-demo` for all):
 | sam@bloomandstem.example | Merchant staff, Bloom & Stem |
 | devin@cornerloaf.example | Merchant admin, Corner Loaf Bakery |
 | ops@handoff.delivery | Handoff admin |
+| jordan@courier.example | Courier |
+| aisha@courier.example | Courier |
 
 ## API (v1)
 
@@ -55,12 +57,21 @@ All JSON. Authenticated calls send `Authorization: Bearer <token>`.
 | `GET /api/v1/merchant/batches` | The merchant's batches, newest first. |
 | `POST /api/v1/merchant/batches` | Multipart upload: `file` (CSV), optional `delivery_date`, `name`. Returns 202; the rows import in the background. |
 | `GET /api/v1/merchant/batches/:id` | A batch with its orders and per-row problems. |
+| `GET /api/v1/merchant/routes?date=YYYY-MM-DD` | The merchant's routing state for a day: waiting, routed, the latest run, and route summaries. |
+| `POST /api/v1/merchant/routes/build` | `date`. Queues the planner for the merchant's own orders that day. Returns 202 with the plan status. |
 | `GET /api/v1/admin/batches?date=YYYY-MM-DD` | Staff only. Every merchant's batches for one delivery day, with totals. Optional `merchant_id`, `status`. |
 | `GET /api/v1/admin/batches/:id` | Staff only. Any batch with its orders and merchant. |
 | `GET /api/v1/admin/merchants` | Staff only. All merchants. |
 | `GET /api/v1/admin/routes?date=YYYY-MM-DD` | Staff only. Per merchant: what is waiting for a route, the latest routing run, and the routes with their stops and ETAs. |
 | `POST /api/v1/admin/routes/build` | Staff only. `merchant_id`, `date`. Queues `BuildRoutesJob`, which replaces that merchant's planned routes for the day. Returns 202 with the plan status. |
-| `GET /api/v1/admin/routes/:id` | Staff only. One route with stops. |
+| `GET /api/v1/admin/routes/:id` | Staff only. One route with stops and offers. |
+| `POST /api/v1/admin/routes/:id/offer` | Staff only. Offers a planned route to every active courier for 20 minutes and emails them. |
+| `GET /api/v1/courier/offers` | Couriers. Open offers with route summary and pay; no recipient details. |
+| `POST /api/v1/courier/offers/:id/accept` | Couriers. First accept wins (409 otherwise); other offers are withdrawn. |
+| `POST /api/v1/courier/offers/:id/decline` | Couriers. |
+| `GET /api/v1/courier/routes`, `GET /api/v1/courier/routes/:id` | Couriers. Assigned, in-progress, and completed routes with full stop details. |
+| `POST /api/v1/courier/routes/:id/start` | Couriers. Assigned to in progress. |
+| `PATCH /api/v1/courier/routes/:id/stops/:stop_id` | Couriers. `status` delivered or failed, optional `note`, `failure_reason`, `photo` data URL. Emails the recipient; completes the route when every stop is settled. |
 
 Geocoding is a lookup against a seeded **address bank** of about fifty thousand
 Toronto-area civic addresses (`lib/address_bank/streets.rb`), so it works with

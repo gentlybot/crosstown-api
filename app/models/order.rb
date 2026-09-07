@@ -4,7 +4,7 @@ class Order < ApplicationRecord
   has_one :route_stop, dependent: :destroy
   has_one :route, through: :route_stop
 
-  STATUSES = %w[pending problem ready routed].freeze
+  STATUSES = %w[pending problem ready routed delivered failed].freeze
   enum :status, STATUSES.index_by(&:itself), default: "pending"
 
   validates :row_number, presence: true, uniqueness: { scope: :batch_id }

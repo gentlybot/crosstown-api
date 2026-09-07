@@ -31,6 +31,9 @@ module Batches
     end
 
     def call
+      if RouteStop.joins(:order).where(orders: { batch_id: @batch.id }).exists?
+        raise InvalidFile, "This batch already has routed orders and cannot be re-imported."
+      end
       table = parse(@batch.raw_csv.to_s)
       check_headers!(table.headers)
       raise InvalidFile, "The file has a header row but no orders." if table.empty?

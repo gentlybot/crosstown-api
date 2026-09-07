@@ -5,7 +5,8 @@ module UserSerializer
       name: user.name,
       email: user.email,
       role: user.role,
-      merchant_id: user.merchant_id
+      merchant_id: user.merchant_id,
+      courier_id: user.courier&.id
     }
   end
 end

@@ -13,7 +13,8 @@ module Api
         render json: {
           token: AuthToken.issue(user),
           user: UserSerializer.call(user),
-          merchant: user.merchant && MerchantSerializer.call(user.merchant)
+          merchant: user.merchant && MerchantSerializer.call(user.merchant),
+          courier: user.courier && CourierSerializer.call(user.courier)
         }, status: :created
       end
 

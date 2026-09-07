@@ -35,6 +35,7 @@ end
 RSpec.configure do |config|
   # Geocoding is a table lookup; the bank is seeded once for the whole suite.
   config.before(:suite) { AddressBank::Seeder.run }
+  config.include ActiveSupport::Testing::TimeHelpers
 
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
   config.fixture_paths = [

@@ -67,6 +67,14 @@ RSpec.describe Batches::CsvImporter do
     expect { described_class.new(batch).call }.to raise_error(described_class::InvalidFile, /no orders/)
   end
 
+  it "refuses to re-import a batch whose orders are already routed" do
+    described_class.new(batch).call
+    route = Route.create!(merchant: merchant, delivery_date: batch.delivery_date, engine: "savings", start_at: Time.current, start_lat: 43.6, start_lng: -79.4)
+    order = batch.orders.ready.first
+    RouteStop.create!(route: route, order: order, position: 1, lat: order.lat, lng: order.lng, eta: Time.current)
+    expect { described_class.new(batch).call }.to raise_error(described_class::InvalidFile, /already has routed orders/)
+  end
+
   it "is idempotent when rerun" do
     2.times { described_class.new(batch).call }
     expect(batch.orders.count).to eq(7)

@@ -1,0 +1,12 @@
+<p>Hi <%= @offer.courier.name %>,</p>
+<p>A route is available.</p>
+<table cellpadding="4">
+  <tr><td>Route</td><td><strong><%= @route.display_name %></strong> for <%= @merchant.business_name %></td></tr>
+  <tr><td>Pickup</td><td><%= @merchant.pickup_address %></td></tr>
+  <tr><td>Leaves</td><td><%= @route.start_at.in_time_zone(@merchant.timezone).strftime("%A %-d %B, %-l:%M %p") %></td></tr>
+  <tr><td>Stops</td><td><%= @route.stop_count %></td></tr>
+  <tr><td>Distance</td><td><%= @route.distance_km %> km</td></tr>
+  <tr><td>Pay</td><td><strong><%= @pay %></strong></td></tr>
+</table>
+<p>Open the Handoff courier app to accept. The offer closes at <%= @offer.expires_at.in_time_zone(@merchant.timezone).strftime("%-l:%M %p") %>.</p>
+<p>Handoff</p>

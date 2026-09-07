@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_09_07_200001) do
+ActiveRecord::Schema[7.2].define(version: 2026_09_07_210001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -48,6 +48,17 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_07_200001) do
     t.index ["created_by_id"], name: "index_batches_on_created_by_id"
     t.index ["merchant_id", "created_at"], name: "index_batches_on_merchant_id_and_created_at"
     t.index ["merchant_id"], name: "index_batches_on_merchant_id"
+  end
+
+  create_table "couriers", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "phone"
+    t.string "vehicle_type", default: "car", null: false
+    t.string "home_fsa"
+    t.string "status", default: "active", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_couriers_on_user_id", unique: true
   end
 
   create_table "merchants", force: :cascade do |t|
@@ -99,6 +110,22 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_07_200001) do
     t.index ["merchant_id"], name: "index_orders_on_merchant_id"
   end
 
+  create_table "route_offers", force: :cascade do |t|
+    t.bigint "route_id", null: false
+    t.bigint "courier_id", null: false
+    t.string "status", default: "offered", null: false
+    t.integer "pay_cents", default: 0, null: false
+    t.datetime "offered_at", null: false
+    t.datetime "expires_at", null: false
+    t.datetime "responded_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["courier_id", "status"], name: "index_route_offers_on_courier_id_and_status"
+    t.index ["courier_id"], name: "index_route_offers_on_courier_id"
+    t.index ["route_id", "courier_id"], name: "index_route_offers_on_route_id_and_courier_id", unique: true
+    t.index ["route_id"], name: "index_route_offers_on_route_id"
+  end
+
   create_table "route_plans", force: :cascade do |t|
     t.bigint "merchant_id", null: false
     t.bigint "requested_by_id"
@@ -128,6 +155,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_07_200001) do
     t.datetime "eta", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "status", default: "pending", null: false
+    t.datetime "arrived_at"
+    t.datetime "completed_at"
+    t.string "failure_reason"
+    t.text "note"
+    t.text "photo_data"
     t.index ["order_id"], name: "index_route_stops_on_order_id", unique: true
     t.index ["route_id", "position"], name: "index_route_stops_on_route_id_and_position", unique: true
     t.index ["route_id"], name: "index_route_stops_on_route_id"
@@ -147,6 +180,13 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_07_200001) do
     t.decimal "start_lng", precision: 10, scale: 7, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "courier_id"
+    t.integer "pay_cents", default: 0, null: false
+    t.datetime "offered_at"
+    t.datetime "assigned_at"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.index ["courier_id"], name: "index_routes_on_courier_id"
     t.index ["merchant_id", "delivery_date"], name: "index_routes_on_merchant_id_and_delivery_date"
     t.index ["merchant_id"], name: "index_routes_on_merchant_id"
     t.index ["route_number"], name: "index_routes_on_route_number", unique: true
@@ -167,12 +207,16 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_07_200001) do
 
   add_foreign_key "batches", "merchants"
   add_foreign_key "batches", "users", column: "created_by_id"
+  add_foreign_key "couriers", "users"
   add_foreign_key "orders", "batches"
   add_foreign_key "orders", "merchants"
+  add_foreign_key "route_offers", "couriers"
+  add_foreign_key "route_offers", "routes"
   add_foreign_key "route_plans", "merchants"
   add_foreign_key "route_plans", "users", column: "requested_by_id"
   add_foreign_key "route_stops", "orders"
   add_foreign_key "route_stops", "routes"
+  add_foreign_key "routes", "couriers"
   add_foreign_key "routes", "merchants"
   add_foreign_key "users", "merchants"
 end

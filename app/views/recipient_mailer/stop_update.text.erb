@@ -1,0 +1,12 @@
+Hi <%= @order.recipient_name %>,
+
+<% if @stop.delivered? -%>
+Your order from <%= @merchant.business_name %> was handed off at <%= @when %>.
+<% if @order.leave_at_door -%>It was left at the door as requested.<% end -%>
+<% if @stop.note.present? -%>Courier note: <%= @stop.note %><% end -%>
+<% else -%>
+Our courier could not deliver your order from <%= @merchant.business_name %> at <%= @when %> (<%= @stop.failure_reason.to_s.humanize.downcase %>).
+It is going back to <%= @merchant.business_name %>, who will be in touch about another delivery.
+<% end -%>
+
+Handoff, on behalf of <%= @merchant.business_name %>

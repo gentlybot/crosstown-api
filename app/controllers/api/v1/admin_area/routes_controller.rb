@@ -14,7 +14,7 @@ module Api
 
           entries = merchants.map do |merchant|
             orders = merchant.orders.joins(:batch).where(batches: { delivery_date: date })
-            routes = merchant.routes.where(delivery_date: date, status: "planned").includes(route_stops: :order).order(:route_number)
+            routes = merchant.routes.where(delivery_date: date).where.not(status: "cancelled").includes(:courier, route_offers: { courier: :user }, route_stops: :order).order(:route_number)
             {
               merchant: MerchantSerializer.brief(merchant),
               ready_unrouted: orders.where(status: "ready").where.not(lat: nil).count,
@@ -43,6 +43,15 @@ module Api
         def show
           route = Route.includes(:merchant, route_stops: :order).find(params[:id])
           render json: { route: RouteSerializer.detail(route) }
+        end
+
+        # POST /api/v1/admin/routes/:id/offer
+        def offer
+          route = Route.find(params[:id])
+          Offers::Dispatch.new(route).call
+          render json: { route: RouteSerializer.detail(route.reload) }
+        rescue Offers::Dispatch::NotOfferable => e
+          render json: { error: e.message }, status: 422
         end
 
         # POST /api/v1/admin/routes/build { merchant_id, date }

@@ -39,6 +39,15 @@ module Api
         return if current_user.admin?
         render json: { error: "Handoff staff only." }, status: :forbidden
       end
+
+      def current_courier
+        current_user&.courier
+      end
+
+      def require_courier!
+        return if current_user.courier? && current_courier
+        render json: { error: "This account is not a courier." }, status: :forbidden
+      end
     end
   end
 end

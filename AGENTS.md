@@ -8,11 +8,11 @@ Fictional company; all data is synthetic.
 | Concern | Where |
 | --- | --- |
 | Routes | `config/routes.rb`. JSON API under `/api/v1`. Sidekiq Web at `/sidekiq`. |
-| Controllers | `app/controllers/api/v1/`. `BaseController` does bearer auth, error rendering, and the `require_merchant!` / `require_admin!` guards. Merchant-facing controllers live in `merchant_area/` (route namespace `merchant`), staff-facing ones in `admin_area/` (namespace `admin`). |
+| Controllers | `app/controllers/api/v1/`. `BaseController` does bearer auth, error rendering, and the `require_merchant!` / `require_admin!` guards. Merchant-facing controllers live in `merchant_area/` (route namespace `merchant`), staff-facing ones in `admin_area/` (namespace `admin`), courier-facing ones in `courier_area/` (namespace `courier`, `require_courier!`). |
 | Auth | `app/services/auth_token.rb`, HS256 JWT, 30 day expiry, secret from `JWT_SECRET` or `secret_key_base`. |
 | Serialization | `app/serializers/*_serializer.rb`, plain modules returning hashes. snake_case keys. `BatchSerializer` takes `include_merchant:` for cross-merchant views. |
-| Domain services | `app/services/`. `Batches::CsvImporter` parses, validates, and geocodes uploads. `Geocoding::AddressBank` looks addresses up in the seeded bank (`lib/address_bank/`). `Routing::Planner` builds routes for a merchant and day through a `Routing::Engine`: `Engines::VrpCli` shells out to `vendor/vrp/bin/vrp-cli` (pragmatic JSON format), `Engines::Savings` is the pure-Ruby fallback. |
-| Jobs | `app/jobs/`. ActiveJob on Sidekiq. `ImportBatchJob` runs the importer and sends `BatchMailer.import_finished`. `BuildRoutesJob` runs the planner; progress lives in `route_plans`. |
+| Domain services | `app/services/`. `Batches::CsvImporter` parses, validates, and geocodes uploads. `Geocoding::AddressBank` looks addresses up in the seeded bank (`lib/address_bank/`). `Offers::Dispatch`, `Offers::Accept`, `Offers::Expire` and `Stops::Complete` are the courier-side state changes; `Routing::Pay` prices a route. `Routing::Planner` builds routes for a merchant and day through a `Routing::Engine`: `Engines::VrpCli` shells out to `vendor/vrp/bin/vrp-cli` (pragmatic JSON format), `Engines::Savings` is the pure-Ruby fallback. |
+| Jobs | `app/jobs/`. ActiveJob on Sidekiq. `ImportBatchJob` runs the importer and sends `BatchMailer.import_finished`. `BuildRoutesJob` runs the planner; progress lives in `route_plans`. `ExpireOffersJob` is scheduled 20 minutes after an offer goes out. |
 | Mail | `app/mailers/`, text and HTML views in `app/views/`. |
 | Config | `.env.development` and `.env.test` (committed, no secrets), `config/sidekiq.yml`, `docker-compose.yml` for local services, `gently/apps.yml` for the sandbox. |
 | Tests | RSpec in `spec/`. Factories in `spec/factories`, helpers in `spec/support`, CSV fixture in `spec/fixtures/files`. |

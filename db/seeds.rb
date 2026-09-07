@@ -64,9 +64,27 @@ seeded_batches.each do |attrs|
     Batches::CsvImporter.new(batch).call
   else
     batch.save!
-    # Batches imported before the address bank existed get placed on the map.
-    Batches::CsvImporter.new(batch).call if batch.orders.where(geocode_precision: nil).exists?
+    # Batches imported before the address bank existed get placed on the map,
+    # unless they have already been routed.
+    unplaced = batch.orders.where(geocode_precision: nil).where.not(address_line: [nil, ""]).exists?
+    routed = RouteStop.joins(:order).where(orders: { batch_id: batch.id }).exists?
+    Batches::CsvImporter.new(batch).call if unplaced && !routed
   end
 end
 
 puts "Seeded #{Batch.count} batches with #{Order.count} orders."
+
+# Couriers: users with role courier plus a courier profile.
+[
+  { email: "jordan@courier.example", name: "Jordan Reyes", phone: "416-555-0171", vehicle_type: "car", home_fsa: "M6J" },
+  { email: "aisha@courier.example", name: "Aisha Bell", phone: "416-555-0172", vehicle_type: "van", home_fsa: "M4M" }
+].each do |attrs|
+  user = User.find_or_initialize_by(email: attrs[:email])
+  user.name = attrs[:name]
+  user.role = "courier"
+  user.password = PASSWORD if user.new_record?
+  user.save!
+  courier = Courier.find_or_initialize_by(user: user)
+  courier.update!(phone: attrs[:phone], vehicle_type: attrs[:vehicle_type], home_fsa: attrs[:home_fsa], status: "active")
+end
+puts "Seeded #{Courier.count} couriers."
