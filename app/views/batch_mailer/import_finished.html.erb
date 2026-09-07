@@ -1,0 +1,14 @@
+<p>Hi <%= @merchant.contact_name.presence || @merchant.business_name %>,</p>
+<p><strong><%= @batch.name %></strong> finished importing.</p>
+<table cellpadding="4">
+  <tr><td>Orders ready</td><td><strong><%= @batch.ready_count %></strong></td></tr>
+  <tr><td>Need attention</td><td><strong><%= @batch.problem_count %></strong></td></tr>
+  <tr><td>Delivery date</td><td><%= @batch.delivery_date.strftime("%A %-d %B") %></td></tr>
+</table>
+<% if @batch.problem_count.positive? %>
+  <p>Fix the flagged rows in the portal before the cutoff so they can go out with the rest.</p>
+<% else %>
+  <p>Nothing to fix. The batch will be routed after your <%= @merchant.cutoff_time %> cutoff.</p>
+<% end %>
+<p><a href="<%= @portal_url %>/merchant/batches/<%= @batch.id %>">Open the batch</a></p>
+<p>Handoff</p>

@@ -1,0 +1,23 @@
+# Local defaults point at the docker-compose services (port 5440). The Gently
+# sandbox injects DATABASE_URL, which Rails merges over the current
+# environment's settings, so no per-environment branching is needed here.
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  host: <%= ENV.fetch("PGHOST", "localhost") %>
+  port: <%= ENV.fetch("PGPORT", 5440) %>
+  username: <%= ENV.fetch("PGUSER", "handoff") %>
+  password: <%= ENV.fetch("PGPASSWORD", "handoff") %>
+
+development:
+  <<: *default
+  database: handoff_development
+
+test:
+  <<: *default
+  database: handoff_test
+
+production:
+  <<: *default
+  database: handoff_production

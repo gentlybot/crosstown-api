@@ -1,0 +1,66 @@
+# Gently workspace runtime for the Handoff API.
+# Rails API + Sidekiq worker + a Mailpit inbox, with Postgres and Redis as services.
+# Routes: the portal repo owns "/", this repo owns /api, /sidekiq, and /mail.
+
+tools:
+  - ruby_3_3
+  - libpq
+  - mailpit
+
+env:
+  RAILS_ENV: development
+  SMTP_HOST: localhost
+  SMTP_PORT: "1025"
+  PORTAL_URL: "{{ gently.GENTLY_ENVIRONMENT_URL }}"
+  CORS_ORIGINS: "{{ gently.GENTLY_ENVIRONMENT_URL }}"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: handoff
+      POSTGRES_PASSWORD: handoff
+      POSTGRES_DB: handoff_development
+    connectionEnv:
+      DATABASE_URL: postgres://handoff:handoff@postgres:5432/handoff_development
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U handoff -d handoff_development"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+  redis:
+    image: redis:7-alpine
+    connectionEnv:
+      REDIS_URL: redis://redis:6379/0
+
+# Runs once per workspace before apps start. Idempotent: db:prepare creates or
+# migrates, and db/seeds.rb upserts.
+setup:
+  - bundle install
+  - bin/rails db:prepare
+  - bin/rails db:seed
+
+apps:
+  api:
+    port: 3000
+    routes:
+      - path: /api
+      - path: /sidekiq
+    startup:
+      - bin/rails server -b 0.0.0.0 -p 3000
+    health:
+      - endpoint: /api/health
+
+  # Port-less app = long-running background process.
+  worker:
+    startup:
+      - bundle exec sidekiq -C config/sidekiq.yml
+
+  mail:
+    port: 8025
+    routes:
+      - path: /mail
+    startup:
+      - mailpit --listen 0.0.0.0:8025 --smtp 0.0.0.0:1025 --webroot /mail
+    health:
+      - endpoint: /mail/

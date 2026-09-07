@@ -1,0 +1,38 @@
+# Idempotent: safe to rerun on every sandbox rebuild.
+PASSWORD = "handoff-demo"
+
+merchants = {
+  "bloom-and-stem" => {
+    business_name: "Bloom & Stem", contact_name: "Maya Chen", contact_email: "maya@bloomandstem.example",
+    phone: "416-555-0199", pickup_address_line: "641 Queen St W", pickup_city: "Toronto", pickup_postal_code: "M5V 2B7",
+    pickup_lat: 43.6472, pickup_lng: -79.4046, cutoff_time: "14:00"
+  },
+  "corner-loaf" => {
+    business_name: "Corner Loaf Bakery", contact_name: "Devin Osei", contact_email: "devin@cornerloaf.example",
+    phone: "416-555-0134", pickup_address_line: "1122 Danforth Ave", pickup_city: "Toronto", pickup_postal_code: "M4J 1M3",
+    pickup_lat: 43.6836, pickup_lng: -79.3334, cutoff_time: "11:00"
+  }
+}
+
+merchants.each do |slug, attrs|
+  merchant = Merchant.find_or_initialize_by(slug: slug)
+  merchant.update!(attrs)
+end
+
+users = [
+  { email: "maya@bloomandstem.example", name: "Maya Chen", role: "merchant_admin", merchant_slug: "bloom-and-stem" },
+  { email: "sam@bloomandstem.example", name: "Sam Whitfield", role: "merchant_staff", merchant_slug: "bloom-and-stem" },
+  { email: "devin@cornerloaf.example", name: "Devin Osei", role: "merchant_admin", merchant_slug: "corner-loaf" },
+  { email: "ops@handoff.delivery", name: "Priya Raman", role: "admin", merchant_slug: nil }
+]
+
+users.each do |attrs|
+  user = User.find_or_initialize_by(email: attrs[:email])
+  user.name = attrs[:name]
+  user.role = attrs[:role]
+  user.merchant = attrs[:merchant_slug] && Merchant.find_by!(slug: attrs[:merchant_slug])
+  user.password = PASSWORD if user.new_record?
+  user.save!
+end
+
+puts "Seeded #{Merchant.count} merchants and #{User.count} users. Password for all: #{PASSWORD}"

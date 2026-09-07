@@ -1,0 +1,35 @@
+# Local development services. Ports are offset so they do not collide with
+# other projects on this machine. The Gently sandbox declares the same
+# services in gently/apps.yml instead of using this file.
+name: handoff
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: handoff
+      POSTGRES_PASSWORD: handoff
+      POSTGRES_DB: handoff_development
+    ports:
+      - "5440:5432"
+    volumes:
+      - handoff-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U handoff -d handoff_development"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6390:6379"
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "8026:8025"
+      - "1026:1025"
+
+volumes:
+  handoff-postgres:
