@@ -19,6 +19,17 @@ bundle exec sidekiq -C config/sidekiq.yml
 
 Or with a Procfile runner: `foreman start -f Procfile.dev`.
 
+Routing uses the [vrp-cli](https://github.com/reinterpretcat/vrp) solver, built
+locally with cargo (a few minutes, once):
+
+```sh
+cargo install vrp-cli --root vendor/vrp    # binary at vendor/vrp/bin/vrp-cli, gitignored
+```
+
+Without it the API falls back to a Ruby Clarke-Wright heuristic and says so on
+every route (`engine: savings`). `ROUTING_ENGINE=savings|vrp_cli|auto`
+overrides the choice; `VRP_CLI_BIN` points at a binary elsewhere.
+
 - Sidekiq dashboard: http://localhost:3200/sidekiq
 - Mail that the app sends: http://localhost:8026
 - Health: http://localhost:3200/api/health
@@ -47,6 +58,14 @@ All JSON. Authenticated calls send `Authorization: Bearer <token>`.
 | `GET /api/v1/admin/batches?date=YYYY-MM-DD` | Staff only. Every merchant's batches for one delivery day, with totals. Optional `merchant_id`, `status`. |
 | `GET /api/v1/admin/batches/:id` | Staff only. Any batch with its orders and merchant. |
 | `GET /api/v1/admin/merchants` | Staff only. All merchants. |
+| `GET /api/v1/admin/routes?date=YYYY-MM-DD` | Staff only. Per merchant: what is waiting for a route, the latest routing run, and the routes with their stops and ETAs. |
+| `POST /api/v1/admin/routes/build` | Staff only. `merchant_id`, `date`. Queues `BuildRoutesJob`, which replaces that merchant's planned routes for the day. Returns 202 with the plan status. |
+| `GET /api/v1/admin/routes/:id` | Staff only. One route with stops. |
+
+Geocoding is a lookup against a seeded **address bank** of about fifty thousand
+Toronto-area civic addresses (`lib/address_bank/streets.rb`), so it works with
+no network. Rows whose address is unknown are flagged "Address not found";
+rows whose postal code disagrees with the address are flagged too.
 
 CSV columns are matched loosely: `name`, `phone`, `email`, `address`, `unit`,
 `city`, `postal_code`, `notes`, `quantity`, `leave_at_door`, `order_id`, with

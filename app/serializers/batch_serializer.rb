@@ -11,6 +11,7 @@ module BatchSerializer
       row_count: batch.row_count,
       ready_count: batch.ready_count,
       problem_count: batch.problem_count,
+      routed_count: batch.routed_count,
       error_message: batch.error_message,
       imported_at: batch.imported_at&.iso8601,
       created_at: batch.created_at.iso8601,
@@ -21,8 +22,10 @@ module BatchSerializer
   end
 
   def self.detail(batch, include_merchant: false)
+    routes = Route.where(id: RouteStop.where(order_id: batch.orders.select(:id)).select(:route_id)).order(:route_number)
     summary(batch, include_merchant: include_merchant).merge(
-      orders: batch.orders.order(:row_number).map { |o| OrderSerializer.call(o) }
+      orders: batch.orders.includes(route_stop: :route).order(:row_number).map { |o| OrderSerializer.call(o) },
+      routes: routes.map { |r| RouteSerializer.summary(r) }
     )
   end
 end

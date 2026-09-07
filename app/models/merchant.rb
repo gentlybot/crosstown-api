@@ -2,6 +2,8 @@ class Merchant < ApplicationRecord
   has_many :users, dependent: :destroy
   has_many :batches, dependent: :destroy
   has_many :orders, dependent: :destroy
+  has_many :routes, dependent: :destroy
+  has_many :route_plans, dependent: :destroy
 
   before_validation :assign_slug, on: :create
 

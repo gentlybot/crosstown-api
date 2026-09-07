@@ -10,9 +10,23 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_09_07_170004) do
+ActiveRecord::Schema[7.2].define(version: 2026_09_07_200001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "address_bank_entries", force: :cascade do |t|
+    t.integer "street_number", null: false
+    t.string "street_name", null: false
+    t.string "street_display", null: false
+    t.string "city", default: "Toronto", null: false
+    t.string "fsa", null: false
+    t.decimal "lat", precision: 10, scale: 7, null: false
+    t.decimal "lng", precision: 10, scale: 7, null: false
+    t.string "source", default: "seed", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["street_name", "city", "street_number"], name: "index_address_bank_on_street_city_number", unique: true
+  end
 
   create_table "batches", force: :cascade do |t|
     t.bigint "merchant_id", null: false
@@ -30,6 +44,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_07_170004) do
     t.string "error_message"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "routed_count", default: 0, null: false
     t.index ["created_by_id"], name: "index_batches_on_created_by_id"
     t.index ["merchant_id", "created_at"], name: "index_batches_on_merchant_id_and_created_at"
     t.index ["merchant_id"], name: "index_batches_on_merchant_id"
@@ -75,10 +90,66 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_07_170004) do
     t.decimal "lng", precision: 10, scale: 7
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "geocode_precision"
+    t.datetime "geocoded_at"
+    t.string "fsa"
     t.index ["batch_id", "row_number"], name: "index_orders_on_batch_id_and_row_number", unique: true
     t.index ["batch_id"], name: "index_orders_on_batch_id"
     t.index ["merchant_id", "status"], name: "index_orders_on_merchant_id_and_status"
     t.index ["merchant_id"], name: "index_orders_on_merchant_id"
+  end
+
+  create_table "route_plans", force: :cascade do |t|
+    t.bigint "merchant_id", null: false
+    t.bigint "requested_by_id"
+    t.date "delivery_date", null: false
+    t.string "status", default: "queued", null: false
+    t.string "engine"
+    t.integer "routes_count", default: 0, null: false
+    t.integer "stops_count", default: 0, null: false
+    t.integer "unassigned_count", default: 0, null: false
+    t.string "error"
+    t.datetime "started_at"
+    t.datetime "finished_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["merchant_id", "delivery_date"], name: "index_route_plans_on_merchant_id_and_delivery_date", unique: true
+    t.index ["merchant_id"], name: "index_route_plans_on_merchant_id"
+    t.index ["requested_by_id"], name: "index_route_plans_on_requested_by_id"
+  end
+
+  create_table "route_stops", force: :cascade do |t|
+    t.bigint "route_id", null: false
+    t.bigint "order_id", null: false
+    t.integer "position", null: false
+    t.decimal "lat", precision: 10, scale: 7, null: false
+    t.decimal "lng", precision: 10, scale: 7, null: false
+    t.decimal "leg_km", precision: 8, scale: 2, default: "0.0", null: false
+    t.datetime "eta", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["order_id"], name: "index_route_stops_on_order_id", unique: true
+    t.index ["route_id", "position"], name: "index_route_stops_on_route_id_and_position", unique: true
+    t.index ["route_id"], name: "index_route_stops_on_route_id"
+  end
+
+  create_table "routes", force: :cascade do |t|
+    t.bigint "merchant_id", null: false
+    t.date "delivery_date", null: false
+    t.integer "route_number", null: false
+    t.string "status", default: "planned", null: false
+    t.string "engine", null: false
+    t.integer "stop_count", default: 0, null: false
+    t.decimal "distance_km", precision: 8, scale: 2, default: "0.0", null: false
+    t.integer "duration_minutes", default: 0, null: false
+    t.datetime "start_at", null: false
+    t.decimal "start_lat", precision: 10, scale: 7, null: false
+    t.decimal "start_lng", precision: 10, scale: 7, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["merchant_id", "delivery_date"], name: "index_routes_on_merchant_id_and_delivery_date"
+    t.index ["merchant_id"], name: "index_routes_on_merchant_id"
+    t.index ["route_number"], name: "index_routes_on_route_number", unique: true
   end
 
   create_table "users", force: :cascade do |t|
@@ -98,5 +169,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_07_170004) do
   add_foreign_key "batches", "users", column: "created_by_id"
   add_foreign_key "orders", "batches"
   add_foreign_key "orders", "merchants"
+  add_foreign_key "route_plans", "merchants"
+  add_foreign_key "route_plans", "users", column: "requested_by_id"
+  add_foreign_key "route_stops", "orders"
+  add_foreign_key "route_stops", "routes"
+  add_foreign_key "routes", "merchants"
   add_foreign_key "users", "merchants"
 end

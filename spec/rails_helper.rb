@@ -33,6 +33,9 @@ rescue ActiveRecord::PendingMigrationError => e
   abort e.to_s.strip
 end
 RSpec.configure do |config|
+  # Geocoding is a table lookup; the bank is seeded once for the whole suite.
+  config.before(:suite) { AddressBank::Seeder.run }
+
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
   config.fixture_paths = [
     Rails.root.join('spec/fixtures')

@@ -33,3 +33,6 @@
 
 # Ignore master key for decrypting credentials and more.
 /config/master.key
+
+# vrp-cli solver binary, built locally with cargo install --root vendor/vrp
+/vendor/vrp/

@@ -19,6 +19,9 @@ Rails.application.routes.draw do
       namespace :admin, module: :admin_area do
         resources :batches, only: %i[index show]
         resources :merchants, only: :index
+        resources :routes, only: %i[index show] do
+          post :build, on: :collection
+        end
       end
     end
   end

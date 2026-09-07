@@ -16,7 +16,13 @@ module OrderSerializer
       quantity: order.quantity,
       leave_at_door: order.leave_at_door,
       status: order.status,
-      problems: order.problems
+      problems: order.problems,
+      lat: order.lat&.to_f,
+      lng: order.lng&.to_f,
+      geocode_precision: order.geocode_precision,
+      route_id: order.route_stop&.route_id,
+      route_number: order.route_stop&.route&.route_number,
+      stop_position: order.route_stop&.position
     }
   end
 end

@@ -6,6 +6,10 @@ tools:
   - ruby_3_3
   - libpq
   - mailpit
+  # Rust toolchain to build the vrp-cli routing solver from crates.io.
+  - cargo
+  - rustc
+  - gcc
 
 env:
   RAILS_ENV: development
@@ -37,6 +41,9 @@ services:
 # migrates, and db/seeds.rb upserts.
 setup:
   - bundle install
+  # Routing solver. Slow the first time; cached by the image after that. If it
+  # is missing the API falls back to the Ruby savings heuristic.
+  - test -x vendor/vrp/bin/vrp-cli || cargo install vrp-cli --root vendor/vrp
   - bin/rails db:prepare
   - bin/rails db:seed
 

@@ -26,9 +26,34 @@ RSpec.describe Batches::CsvImporter do
   end
 
   it "marks rows without any contact method" do
-    batch.update!(raw_csv: "name,address,postal_code\nPat Lee,1 Yonge St,M5E 1E5\n")
+    batch.update!(raw_csv: "name,address,postal_code\nPat Lee,22 Palmerston Ave,M6J 2J1\n")
     described_class.new(batch).call
     expect(batch.orders.first.problems).to eq(["Phone or email is required"])
+  end
+
+  it "places rows against the address bank" do
+    described_class.new(batch).call
+    by_id = batch.orders.index_by(&:external_id)
+    expect(by_id["1001"].lat).to be_within(0.01).of(43.647)
+    expect(by_id["1001"].lng).to be_within(0.01).of(-79.411)
+    expect(by_id["1001"].geocode_precision).to eq("exact")
+    expect(by_id["1001"].fsa).to eq("M6J")
+    expect(by_id["1004"].lat).to be_nil, "rows without an address are not looked up"
+  end
+
+  it "flags an address the bank does not know" do
+    batch.update!(raw_csv: "name,phone,address,postal_code\nPat Lee,416-555-0100,9 Nowhere Cres,M6J 2J1\n")
+    described_class.new(batch).call
+    order = batch.orders.first
+    expect(order.problems).to eq(["Address not found"])
+    expect(order.geocode_precision).to eq("none")
+  end
+
+  it "flags a postal code from the wrong part of town" do
+    batch.update!(raw_csv: "name,phone,address,postal_code\nPat Lee,416-555-0100,22 Palmerston Ave,M4M 1A1\n")
+    described_class.new(batch).call
+    expect(batch.orders.first.problems).to eq(["Postal code M4M does not match the address, which is in M6J"])
+    expect(batch.orders.first.lat).to be_present, "the row is still placed"
   end
 
   it "rejects files missing a required column" do

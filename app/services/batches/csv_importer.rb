@@ -108,9 +108,36 @@ module Batches
         end
       end
 
+      geocode!(attrs, problems)
+
       attrs[:problems] = problems
       attrs[:status] = problems.empty? ? "ready" : "problem"
       attrs
+    end
+
+    # Places the row against the address bank. A found address also checks the
+    # postal code's forward sortation area, which catches the common typo of a
+    # code from the wrong part of town.
+    def geocode!(attrs, problems)
+      return if attrs[:address_line].blank?
+
+      hit = Geocoding::AddressBank.lookup(attrs[:address_line], city: attrs[:city])
+      if hit.nil?
+        attrs[:geocode_precision] = "none"
+        problems << "Address not found"
+        return
+      end
+
+      attrs[:lat] = hit.lat
+      attrs[:lng] = hit.lng
+      attrs[:fsa] = hit.fsa
+      attrs[:geocode_precision] = hit.precision
+      attrs[:geocoded_at] = Time.current
+
+      given = attrs[:postal_code]
+      if given.present? && given.match?(POSTAL_CODE) && given[0, 3] != hit.fsa
+        problems << "Postal code #{given[0, 3]} does not match the address, which is in #{hit.fsa}"
+      end
     end
 
     def clean(value)

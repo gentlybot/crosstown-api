@@ -1,6 +1,9 @@
 # Idempotent: safe to rerun on every sandbox rebuild.
 PASSWORD = "handoff-demo"
 
+bank = AddressBank::Seeder.run
+puts "Address bank: #{bank[:total]} addresses (#{bank[:inserted]} new)."
+
 merchants = {
   "bloom-and-stem" => {
     business_name: "Bloom & Stem", contact_name: "Maya Chen", contact_email: "maya@bloomandstem.example",
@@ -61,6 +64,8 @@ seeded_batches.each do |attrs|
     Batches::CsvImporter.new(batch).call
   else
     batch.save!
+    # Batches imported before the address bank existed get placed on the map.
+    Batches::CsvImporter.new(batch).call if batch.orders.where(geocode_precision: nil).exists?
   end
 end
 
