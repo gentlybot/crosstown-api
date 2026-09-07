@@ -1,0 +1,11 @@
+Order Number,Customer,Phone Number,Email,Address,Apt,City,Postal Code,Qty,Leave at door,Notes
+1001,Rita Okafor,416-555-0101,,22 Palmerston Ave,,Toronto,M6J 2J1,1,yes,Ring twice
+1002,Marcus Fischer,,marcus@example.com,108 Euclid Ave,2,Toronto,m6j2j8,2,,
+1003,Jenny Nguyen,416-555-0103,,35 Bellwoods Ave,,Toronto,M6J 3N4,1,no,
+1004,Alex Petrov,416-555-0104,,,,Toronto,M6J 2W3,1,,Buzz 401
+1005,Sana Bhatt,416-555-0105,,19 Shaw St,,Toronto,12345,1,,
+1006,Leo Tran,,leo@example.com,77 Crawford St,,,M6J 2V2,three,,
+1007,Grace Kim,416-555-0107,,300 Queen St W,,Toronto,M5V 2A2,1,yes,
+1008,Omar Haddad,416-555-0108,,55 Ossington Ave,3B,Toronto,M6J 2Y9,1,,Side door
+1009,Beth Carter,,beth@example.com,12 Givins St,,Toronto,M6J 2X5,1,yes,
+1010,Nikhil Rao,416-555-0110,,140 Dovercourt Rd,,Toronto,M6J 3C5,2,,

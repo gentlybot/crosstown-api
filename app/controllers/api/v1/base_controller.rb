@@ -34,6 +34,11 @@ module Api
         return if current_merchant
         render json: { error: "This account is not attached to a merchant." }, status: :forbidden
       end
+
+      def require_admin!
+        return if current_user.admin?
+        render json: { error: "Handoff staff only." }, status: :forbidden
+      end
     end
   end
 end

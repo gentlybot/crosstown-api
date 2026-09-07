@@ -15,6 +15,11 @@ Rails.application.routes.draw do
       namespace :merchant, module: :merchant_area do
         resources :batches, only: %i[index show create]
       end
+
+      namespace :admin, module: :admin_area do
+        resources :batches, only: %i[index show]
+        resources :merchants, only: :index
+      end
     end
   end
 end

@@ -44,6 +44,9 @@ All JSON. Authenticated calls send `Authorization: Bearer <token>`.
 | `GET /api/v1/merchant/batches` | The merchant's batches, newest first. |
 | `POST /api/v1/merchant/batches` | Multipart upload: `file` (CSV), optional `delivery_date`, `name`. Returns 202; the rows import in the background. |
 | `GET /api/v1/merchant/batches/:id` | A batch with its orders and per-row problems. |
+| `GET /api/v1/admin/batches?date=YYYY-MM-DD` | Staff only. Every merchant's batches for one delivery day, with totals. Optional `merchant_id`, `status`. |
+| `GET /api/v1/admin/batches/:id` | Staff only. Any batch with its orders and merchant. |
+| `GET /api/v1/admin/merchants` | Staff only. All merchants. |
 
 CSV columns are matched loosely: `name`, `phone`, `email`, `address`, `unit`,
 `city`, `postal_code`, `notes`, `quantity`, `leave_at_door`, `order_id`, with
@@ -56,5 +59,8 @@ common aliases such as `Customer`, `Phone Number`, `Apt`, `Postal Code`, `Qty`.
 bundle exec rspec
 ```
 
-Request specs cover sign-in and the batch upload flow; a service spec covers the
-CSV importer. Jobs run inline in tests.
+Request specs cover sign-in, the merchant batch upload flow, and the staff
+views; a service spec covers the CSV importer. Jobs run inline in tests.
+
+Seeds also create three demo batches (two for tomorrow, one for today) so the
+ops view has data on first sign-in.

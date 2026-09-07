@@ -36,3 +36,32 @@ users.each do |attrs|
 end
 
 puts "Seeded #{Merchant.count} merchants and #{User.count} users. Password for all: #{PASSWORD}"
+
+# Demo batches so the ops view has something to show on first sign-in. Keyed by
+# name per merchant; delivery dates are refreshed on every run so they stay
+# current. The rows are imported inline rather than through Sidekiq.
+seeded_batches = [
+  { merchant_slug: "bloom-and-stem", name: "Tuesday flowers", file: "orders-problems.csv", delivery_date: Date.tomorrow, user: "maya@bloomandstem.example" },
+  { merchant_slug: "bloom-and-stem", name: "Weekend arrangements", file: "orders-clean.csv", delivery_date: Date.current, user: "sam@bloomandstem.example" },
+  { merchant_slug: "corner-loaf", name: "Morning bread run", file: "orders-clean.csv", delivery_date: Date.tomorrow, user: "devin@cornerloaf.example" }
+]
+
+seeded_batches.each do |attrs|
+  merchant = Merchant.find_by!(slug: attrs[:merchant_slug])
+  batch = Batch.find_or_initialize_by(merchant: merchant, name: attrs[:name])
+  batch.delivery_date = attrs[:delivery_date]
+  if batch.new_record?
+    batch.assign_attributes(
+      source: "csv",
+      original_filename: attrs[:file],
+      raw_csv: Rails.root.join("db/seeds", attrs[:file]).read,
+      created_by: User.find_by(email: attrs[:user])
+    )
+    batch.save!
+    Batches::CsvImporter.new(batch).call
+  else
+    batch.save!
+  end
+end
+
+puts "Seeded #{Batch.count} batches with #{Order.count} orders."

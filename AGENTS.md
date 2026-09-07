@@ -8,9 +8,9 @@ Fictional company; all data is synthetic.
 | Concern | Where |
 | --- | --- |
 | Routes | `config/routes.rb`. JSON API under `/api/v1`. Sidekiq Web at `/sidekiq`. |
-| Controllers | `app/controllers/api/v1/`. `BaseController` does bearer auth and error rendering. Merchant-facing controllers live in `merchant_area/` (route namespace `merchant`). |
+| Controllers | `app/controllers/api/v1/`. `BaseController` does bearer auth, error rendering, and the `require_merchant!` / `require_admin!` guards. Merchant-facing controllers live in `merchant_area/` (route namespace `merchant`), staff-facing ones in `admin_area/` (namespace `admin`). |
 | Auth | `app/services/auth_token.rb`, HS256 JWT, 30 day expiry, secret from `JWT_SECRET` or `secret_key_base`. |
-| Serialization | `app/serializers/*_serializer.rb`, plain modules returning hashes. snake_case keys. |
+| Serialization | `app/serializers/*_serializer.rb`, plain modules returning hashes. snake_case keys. `BatchSerializer` takes `include_merchant:` for cross-merchant views. |
 | Domain services | `app/services/`. `Batches::CsvImporter` parses and validates uploads. |
 | Jobs | `app/jobs/`. ActiveJob on Sidekiq. `ImportBatchJob` runs the importer and sends `BatchMailer.import_finished`. |
 | Mail | `app/mailers/`, text and HTML views in `app/views/`. |
@@ -31,7 +31,7 @@ bin/rubocop
 ## Rules
 
 - **Every write path gets a request spec.** Run `bundle exec rspec` before calling a change done.
-- **Seeds must stay idempotent.** `db/seeds.rb` reruns on every sandbox rebuild; use find-or-initialize and `update!`.
+- **Seeds must stay idempotent.** `db/seeds.rb` reruns on every sandbox rebuild; use find-or-initialize and `update!`. Demo batches are keyed by merchant and name and read their CSVs from `db/seeds/`.
 - **Ports are offset locally** (3200, 5440, 6390, 8026) so this project does not collide with others on the machine. Inside the sandbox the defaults apply and `DATABASE_URL`, `REDIS_URL`, `SMTP_*` are injected.
 - **Status codes:** use `422` numerically rather than the `:unprocessable_entity` symbol, which Rack has renamed.
 - **The `json` gem is pinned below 2.10** because ActiveSupport 7.2 still passes `quirks_mode` to `JSON.generate`. Remove the pin when Rails is upgraded.

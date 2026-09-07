@@ -1,4 +1,13 @@
 module MerchantSerializer
+  def self.brief(merchant)
+    {
+      id: merchant.id,
+      business_name: merchant.business_name,
+      slug: merchant.slug,
+      cutoff_time: merchant.cutoff_time
+    }
+  end
+
   def self.call(merchant)
     {
       id: merchant.id,
