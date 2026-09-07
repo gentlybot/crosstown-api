@@ -5,6 +5,8 @@ company for local shops in Toronto. Handoff is a sample product used to demo
 product workflows; this repo is its backend. The web apps live in
 `handoff-apps`, the public site in `handoff-marketing`.
 
+The backlog for all three repos is in [TODO.md](TODO.md).
+
 ## Run it locally
 
 Services run in Docker, Ruby runs on your machine.
