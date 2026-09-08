@@ -95,4 +95,7 @@ Request specs cover sign-in, the merchant batch upload flow, and the staff
 views; a service spec covers the CSV importer. Jobs run inline in tests.
 
 Seeds also create three demo batches (two for tomorrow, one for today) so the
-ops view has data on first sign-in.
+ops view has data on first sign-in, then plan a route for each merchant-day:
+tomorrow's two routes are on offer to both couriers (open until the route is
+due to leave) and Jordan has already taken today's Bloom & Stem route, so the
+courier app has offers to answer and a route to drive straight away.

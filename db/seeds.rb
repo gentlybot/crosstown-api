@@ -88,3 +88,30 @@ puts "Seeded #{Batch.count} batches with #{Order.count} orders."
   courier.update!(phone: attrs[:phone], vehicle_type: attrs[:vehicle_type], home_fsa: attrs[:home_fsa], status: "active")
 end
 puts "Seeded #{Courier.count} couriers."
+
+# Routes, offers, and one taken route so the courier app has work in it on
+# first sign-in: tomorrow's routes are on offer to every courier, and Jordan
+# has already accepted today's Bloom & Stem route. A merchant-day whose route
+# is already offered or assigned is left alone, so a rerun never pulls a route
+# out from under a courier; expired offers go back through the planner.
+ops = User.find_by!(email: "ops@crosstown.delivery")
+jordan = Courier.joins(:user).find_by!(users: { email: "jordan@courier.example" })
+
+seeded_batches.map { |b| [b[:merchant_slug], b[:delivery_date]] }.uniq.each do |slug, delivery_date|
+  merchant = Merchant.find_by!(slug: slug)
+  next if merchant.routes.where(delivery_date: delivery_date).where.not(status: "planned").exists?
+  Routing::Planner.new(merchant, delivery_date, requested_by: ops).call
+end
+
+Route.planned.where(delivery_date: [Date.current, Date.tomorrow]).find_each do |route|
+  Offers::Dispatch.new(route).call
+  # Seeded offers stay open until the route is due to leave (at least a few
+  # hours), not the usual 20 minutes, so the inbox is not empty by the time
+  # someone opens the demo.
+  route.route_offers.offered.update_all(expires_at: [route.start_at, 6.hours.from_now].max, updated_at: Time.current)
+end
+
+todays_offer = jordan.route_offers.open.joins(:route).where(routes: { delivery_date: Date.current, status: "offered" }).order("routes.route_number").first
+Offers::Accept.new(todays_offer).call if todays_offer
+
+puts "Seeded #{Route.count} routes: #{Route.offered.count} on offer, #{Route.where(courier: jordan).count} taken by #{jordan.name}."
