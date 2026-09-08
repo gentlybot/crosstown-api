@@ -27,7 +27,7 @@ gem "bootsnap", require: false
 gem "json", "< 2.10"
 
 # Background jobs and the Sidekiq web UI (mounted at /sidekiq).
-gem "sidekiq", "~> 7.3"
+gem "sidekiq", "~> 8.0"
 # Sidekiq 7.3 still calls ConnectionPool::TimedStack#pop(timeout), which
 # connection_pool 3.0 removed; without this pin the scheduler thread dies at
 # boot and delayed jobs (offer expiry) never run.
