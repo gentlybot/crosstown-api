@@ -26,8 +26,8 @@ module Api
             if available
               current_courier.courier_availabilities.find_or_create_by!(availability_date: date)
             else
-              current_courier.courier_availabilities.where(availability_date: date).destroy_all
               withdraw_open_offers_for(date)
+              current_courier.courier_availabilities.where(availability_date: date).destroy_all
             end
           end
 
@@ -43,14 +43,15 @@ module Api
         end
 
         def withdraw_open_offers_for(date)
-          offers = current_courier.route_offers.offered.joins(:route).where(routes: { delivery_date: date }).includes(:route).to_a
-          return if offers.empty?
-
+          route_ids = current_courier.route_offers.open.joins(:route).where(routes: { delivery_date: date }).distinct.order(:route_id).pluck(:route_id)
           now = Time.current
-          offers.each { |offer| offer.update!(status: "withdrawn", responded_at: now) }
 
-          offers.map(&:route).uniq.each do |route|
-            route.lock!
+          route_ids.each do |route_id|
+            route = Route.lock.find(route_id)
+            offer = current_courier.route_offers.open.lock.find_by(route: route)
+            next unless offer
+
+            offer.update!(status: "withdrawn", responded_at: now)
             route.update!(status: "planned") if route.offered? && route.route_offers.offered.none?
           end
         end
