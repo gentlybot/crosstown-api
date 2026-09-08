@@ -69,5 +69,7 @@ apps:
       - path: /mail
     startup:
       - mailpit --listen 0.0.0.0:8025 --smtp 0.0.0.0:1025 --webroot /mail
+    # Mailpit redirects the bare webroot (/mail -> /mail/), and Gently probes
+    # without the trailing slash, so use its readiness endpoint.
     health:
-      - endpoint: /mail/
+      - endpoint: /mail/readyz

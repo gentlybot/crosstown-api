@@ -28,6 +28,10 @@ gem "json", "< 2.10"
 
 # Background jobs and the Sidekiq web UI (mounted at /sidekiq).
 gem "sidekiq", "~> 7.3"
+# Sidekiq 7.3 still calls ConnectionPool::TimedStack#pop(timeout), which
+# connection_pool 3.0 removed; without this pin the scheduler thread dies at
+# boot and delayed jobs (offer expiry) never run.
+gem "connection_pool", "< 3"
 # Cross-origin requests from the portal and courier apps.
 gem "rack-cors"
 # Token auth for the SPA clients.
@@ -36,7 +40,6 @@ gem "bcrypt", "~> 3.1"
 # JSON views for the older API namespace.
 gem "jbuilder"
 # Bundled gem from Ruby 3.4 on; used by the batch importer.
-gem "csv"
 
 # Loads .env files in development and test.
 gem "dotenv-rails", groups: [:development, :test]
