@@ -10,28 +10,48 @@ module Offers
     end
 
     def call
-      raise NotOfferable, "#{@route.display_name} is #{@route.status.humanize.downcase}, not planned." unless @route.planned? || @route.offered?
-      couriers = Courier.available_on(@route.delivery_date).includes(:user).to_a
-      if couriers.empty?
-        raise NotOfferable, "There are no active couriers available for #{@route.display_name} on #{@route.delivery_date.strftime('%B %-d')}."
-      end
-
-      now = Time.current
-      pay = Routing::Pay.cents(@route)
       offers = []
       Route.transaction do
-        @route.update!(status: "offered", offered_at: now, pay_cents: pay)
+        # Availability removal locks its date row before it examines routes.
+        # Keep that lock while selecting and creating offers so a courier who
+        # becomes unavailable cannot receive a newly-created offer.
+        couriers = available_couriers
+        route = Route.lock.find(@route.id)
+        raise NotOfferable, "#{route.display_name} is #{route.status.humanize.downcase}, not planned." unless route.planned? || route.offered?
+        if couriers.empty?
+          raise NotOfferable, "There are no active couriers available for #{route.display_name} on #{route.delivery_date.strftime('%B %-d')}."
+        end
+
+        now = Time.current
+        pay = Routing::Pay.cents(route)
+        route.update!(status: "offered", offered_at: now, pay_cents: pay)
         couriers.each do |courier|
-          offer = RouteOffer.find_or_initialize_by(route: @route, courier: courier)
+          offer = RouteOffer.find_or_initialize_by(route: route, courier: courier)
           next if offer.persisted? && offer.declined?
           offer.assign_attributes(status: "offered", pay_cents: pay, offered_at: now, expires_at: now + OFFER_WINDOW, responded_at: nil)
           offer.save!
           offers << offer
         end
+
+        @route = route
+        @offer_window_ends_at = now + OFFER_WINDOW
       end
       offers.each { |offer| CourierMailer.route_offered(offer).deliver_later }
-      ExpireOffersJob.set(wait_until: now + OFFER_WINDOW + 5.seconds).perform_later(@route.id)
+      ExpireOffersJob.set(wait_until: @offer_window_ends_at + 5.seconds).perform_later(@route.id)
       offers
+    end
+
+    private
+
+    def available_couriers
+      availability_rows = CourierAvailability.joins(:courier)
+        .merge(Courier.active)
+        .on(@route.delivery_date)
+        .order(:courier_id)
+        .lock("FOR UPDATE OF courier_availabilities")
+        .to_a
+
+      Courier.where(id: availability_rows.map(&:courier_id)).includes(:user).order(:id).to_a
     end
   end
 end

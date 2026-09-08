@@ -19,15 +19,16 @@ module Api
           date = parse_date(params[:date])
           return render json: { error: "Choose a valid availability date." }, status: 422 unless date
           return render json: { error: "Availability can only be changed for today or later." }, status: 422 if date < Date.current
-          return render json: { error: "Say whether you are available." }, status: 422 unless params.key?(:available)
+          available = params[:available]
+          return render json: { error: "Say whether you are available." }, status: 422 unless [ true, false ].include?(available)
 
-          available = ActiveModel::Type::Boolean.new.cast(params[:available])
           Courier.transaction do
             if available
               current_courier.courier_availabilities.find_or_create_by!(availability_date: date)
             else
+              availability = current_courier.courier_availabilities.lock.find_by(availability_date: date)
               withdraw_open_offers_for(date)
-              current_courier.courier_availabilities.where(availability_date: date).destroy_all
+              availability&.destroy!
             end
           end
 

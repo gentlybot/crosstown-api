@@ -13,7 +13,7 @@ RSpec.describe "Courier availability", type: :request do
   end
 
   it "lets a courier set and review future availability" do
-    patch "/api/v1/courier/availability", params: { date: date.iso8601, available: true }, headers: headers
+    patch "/api/v1/courier/availability", params: { date: date.iso8601, available: true }, as: :json, headers: headers
 
     expect(response).to have_http_status(:ok)
     expect(json).to eq("date" => date.iso8601, "available" => true)
@@ -24,12 +24,29 @@ RSpec.describe "Courier availability", type: :request do
     expect(json["availability_dates"]).to eq([ date.iso8601 ])
   end
 
+  it "requires a boolean availability value" do
+    create(:courier_availability, courier: courier, availability_date: date)
+
+    [ nil, "false", "maybe" ].each do |available|
+      patch "/api/v1/courier/availability", params: { date: date.iso8601, available: available }, as: :json, headers: headers
+
+      expect(response).to have_http_status(422)
+      expect(courier.courier_availabilities.on(date)).to exist
+    end
+
+    patch "/api/v1/courier/availability", params: { date: date.iso8601, available: false }, as: :json, headers: headers
+
+    expect(response).to have_http_status(:ok)
+    expect(json).to eq("date" => date.iso8601, "available" => false)
+    expect(courier.courier_availabilities.on(date)).not_to exist
+  end
+
   it "withdraws an open offer when the courier becomes unavailable" do
     route = build_offered_route
     offer = RouteOffer.create!(route: route, courier: courier, status: "offered", pay_cents: 1_500, offered_at: Time.current, expires_at: 20.minutes.from_now)
     create(:courier_availability, courier: courier, availability_date: date)
 
-    patch "/api/v1/courier/availability", params: { date: date.iso8601, available: false }, headers: headers
+    patch "/api/v1/courier/availability", params: { date: date.iso8601, available: false }, as: :json, headers: headers
 
     expect(response).to have_http_status(:ok)
     expect(offer.reload).to be_withdrawn
@@ -54,7 +71,7 @@ RSpec.describe "Courier availability", type: :request do
       original.call(*args, &block)
     end
 
-    patch "/api/v1/courier/availability", params: { date: date.iso8601, available: false }, headers: headers
+    patch "/api/v1/courier/availability", params: { date: date.iso8601, available: false }, as: :json, headers: headers
 
     expect(response).to have_http_status(:ok)
     expect(offer.reload).to be_accepted
@@ -67,7 +84,7 @@ RSpec.describe "Courier availability", type: :request do
     offer = RouteOffer.create!(route: route, courier: courier, status: "offered", pay_cents: 1_500, offered_at: 30.minutes.ago, expires_at: 1.minute.ago)
     create(:courier_availability, courier: courier, availability_date: date)
 
-    patch "/api/v1/courier/availability", params: { date: date.iso8601, available: false }, headers: headers
+    patch "/api/v1/courier/availability", params: { date: date.iso8601, available: false }, as: :json, headers: headers
 
     expect(response).to have_http_status(:ok)
     expect(offer.reload).to be_offered
@@ -77,7 +94,7 @@ RSpec.describe "Courier availability", type: :request do
   end
 
   it "does not allow a courier to change a past date" do
-    patch "/api/v1/courier/availability", params: { date: Date.yesterday.iso8601, available: true }, headers: headers
+    patch "/api/v1/courier/availability", params: { date: Date.yesterday.iso8601, available: true }, as: :json, headers: headers
 
     expect(response).to have_http_status(422)
     expect(json["error"]).to eq("Availability can only be changed for today or later.")

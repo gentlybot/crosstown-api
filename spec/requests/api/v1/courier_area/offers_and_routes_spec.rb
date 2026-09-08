@@ -52,7 +52,7 @@ RSpec.describe "Courier offers and routes", type: :request do
 
     # Jordan starts the route and works the stops.
     get "/api/v1/courier/routes", headers: auth_headers(jordan.user)
-    expect(json["routes"].map { |r| r["id"] }).to eq([route.id])
+    expect(json["routes"].map { |r| r["id"] }).to eq([ route.id ])
 
     patch "/api/v1/courier/routes/#{route.id}/stops/#{route.route_stops.first.id}", params: { status: "delivered" }, headers: auth_headers(jordan.user)
     expect(response).to have_http_status(422)
@@ -95,7 +95,7 @@ RSpec.describe "Courier offers and routes", type: :request do
       ExpireOffersJob.perform_now(route.id)
     end
     expect(route.reload.status).to eq("planned")
-    expect(route.route_offers.pluck(:status).uniq).to eq(["expired"])
+    expect(route.route_offers.pluck(:status).uniq).to eq([ "expired" ])
   end
 
   it "refuses to offer a route that is not planned" do
@@ -114,6 +114,51 @@ RSpec.describe "Courier offers and routes", type: :request do
     expect(response).to have_http_status(:ok)
     expect(route.route_offers.pluck(:courier_id)).to contain_exactly(jordan.id)
     expect(ActionMailer::Base.deliveries.map(&:to).flatten).to contain_exactly(jordan.email)
+  end
+
+  it "locks availability before the route when dispatching offers" do
+    lock_queries = []
+    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_event, _start, _finish, _id, payload|
+      lock_queries << payload[:sql] if payload[:sql].include?("FOR UPDATE")
+    end
+
+    post "/api/v1/admin/routes/#{route.id}/offer", headers: auth_headers(admin)
+
+    availability_lock = lock_queries.index { |sql| sql.include?("FOR UPDATE OF courier_availabilities") }
+    route_lock = lock_queries.index { |sql| sql.match?(/FROM "routes".*FOR UPDATE/) }
+    expect(response).to have_http_status(:ok)
+    expect(availability_lock).to be < route_lock
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+  end
+
+  it "does not offer a route when no courier is available on its delivery day" do
+    [ jordan, aisha ].each { |courier| courier.courier_availabilities.where(availability_date: date).destroy_all }
+    clear_enqueued_jobs
+    ActionMailer::Base.deliveries.clear
+
+    post "/api/v1/admin/routes/#{route.id}/offer", headers: auth_headers(admin)
+
+    expect(response).to have_http_status(422)
+    expect(json["error"]).to include("There are no active couriers available")
+    expect(route.reload).to be_planned
+    expect(route.route_offers).to be_empty
+    expect(enqueued_jobs).to be_empty
+    expect(ActionMailer::Base.deliveries).to be_empty
+  end
+
+  it "does not let a courier accept an open offer after becoming unavailable" do
+    post "/api/v1/admin/routes/#{route.id}/offer", headers: auth_headers(admin)
+    offer = RouteOffer.find_by!(route: route, courier: jordan)
+    jordan.courier_availabilities.where(availability_date: date).destroy_all
+
+    post "/api/v1/courier/offers/#{offer.id}/accept", headers: auth_headers(jordan.user)
+
+    expect(response).to have_http_status(:conflict)
+    expect(json["error"]).to include("no longer available")
+    expect(offer.reload).to be_offered
+    expect(route.reload).to be_offered
+    expect(route.courier).to be_nil
   end
 
   it "keeps couriers out of merchant and admin areas, and merchants out of courier ones" do
