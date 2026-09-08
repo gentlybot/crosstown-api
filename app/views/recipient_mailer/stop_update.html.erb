@@ -1,10 +1,10 @@
 <p>Hi <%= @order.recipient_name %>,</p>
 <% if @stop.delivered? %>
-  <p>Your order from <strong><%= @merchant.business_name %></strong> was handed off at <%= @when %>.<% if @order.leave_at_door %> It was left at the door as requested.<% end %></p>
+  <p>Your order from <strong><%= @merchant.business_name %></strong> was delivered at <%= @when %>.<% if @order.leave_at_door %> It was left at the door as requested.<% end %></p>
   <% if @stop.note.present? %><p>Courier note: <%= @stop.note %></p><% end %>
   <% if @stop.photo_data.present? %><p><img src="<%= @stop.photo_data %>" alt="Photo at the door" style="max-width: 320px; border-radius: 8px;" /></p><% end %>
 <% else %>
   <p>Our courier could not deliver your order from <strong><%= @merchant.business_name %></strong> at <%= @when %> (<%= @stop.failure_reason.to_s.humanize.downcase %>).</p>
   <p>It is going back to <%= @merchant.business_name %>, who will be in touch about another delivery.</p>
 <% end %>
-<p>Handoff, on behalf of <%= @merchant.business_name %></p>
+<p>Crosstown, on behalf of <%= @merchant.business_name %></p>

@@ -8,5 +8,5 @@
   <tr><td>Distance</td><td><%= @route.distance_km %> km</td></tr>
   <tr><td>Pay</td><td><strong><%= @pay %></strong></td></tr>
 </table>
-<p>Open the Handoff courier app to accept. The offer closes at <%= @offer.expires_at.in_time_zone(@merchant.timezone).strftime("%-l:%M %p") %>.</p>
-<p>Handoff</p>
+<p>Open the Crosstown courier app to accept. The offer closes at <%= @offer.expires_at.in_time_zone(@merchant.timezone).strftime("%-l:%M %p") %>.</p>
+<p>Crosstown</p>

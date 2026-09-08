@@ -1,9 +1,9 @@
-# Handoff API
+# Crosstown API
 
-Rails 7.2 API and Sidekiq worker for **Handoff**, a fictional same-day delivery
-company for local shops in Toronto. Handoff is a sample product used to demo
+Rails 7.2 API and Sidekiq worker for **Crosstown**, a fictional same-day delivery
+company for local shops in Toronto. Crosstown is a sample product used to demo
 product workflows; this repo is its backend. The web apps live in
-`handoff-apps`, the public site in `handoff-marketing`.
+`crosstown-apps`, the public site in `crosstown-marketing`.
 
 The backlog for all three repos is in [TODO.md](TODO.md).
 
@@ -36,14 +36,14 @@ overrides the choice; `VRP_CLI_BIN` points at a binary elsewhere.
 - Mail that the app sends: http://localhost:8026
 - Health: http://localhost:3200/api/health
 
-Demo sign-ins (password `handoff-demo` for all):
+Demo sign-ins (password `crosstown-demo` for all):
 
 | Email | Role |
 | --- | --- |
 | maya@bloomandstem.example | Merchant admin, Bloom & Stem |
 | sam@bloomandstem.example | Merchant staff, Bloom & Stem |
 | devin@cornerloaf.example | Merchant admin, Corner Loaf Bakery |
-| ops@handoff.delivery | Handoff admin |
+| ops@crosstown.delivery | Crosstown admin |
 | jordan@courier.example | Courier |
 | aisha@courier.example | Courier |
 

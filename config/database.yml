@@ -7,17 +7,17 @@ default: &default
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   host: <%= ENV.fetch("PGHOST", "localhost") %>
   port: <%= ENV.fetch("PGPORT", 5440) %>
-  username: <%= ENV.fetch("PGUSER", "handoff") %>
-  password: <%= ENV.fetch("PGPASSWORD", "handoff") %>
+  username: <%= ENV.fetch("PGUSER", "crosstown") %>
+  password: <%= ENV.fetch("PGPASSWORD", "crosstown") %>
 
 development:
   <<: *default
-  database: handoff_development
+  database: crosstown_development
 
 test:
   <<: *default
-  database: handoff_test
+  database: crosstown_test
 
 production:
   <<: *default
-  database: handoff_production
+  database: crosstown_production

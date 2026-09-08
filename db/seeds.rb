@@ -1,5 +1,5 @@
 # Idempotent: safe to rerun on every sandbox rebuild.
-PASSWORD = "handoff-demo"
+PASSWORD = "crosstown-demo"
 
 bank = AddressBank::Seeder.run
 puts "Address bank: #{bank[:total]} addresses (#{bank[:inserted]} new)."
@@ -26,7 +26,7 @@ users = [
   { email: "maya@bloomandstem.example", name: "Maya Chen", role: "merchant_admin", merchant_slug: "bloom-and-stem" },
   { email: "sam@bloomandstem.example", name: "Sam Whitfield", role: "merchant_staff", merchant_slug: "bloom-and-stem" },
   { email: "devin@cornerloaf.example", name: "Devin Osei", role: "merchant_admin", merchant_slug: "corner-loaf" },
-  { email: "ops@handoff.delivery", name: "Priya Raman", role: "admin", merchant_slug: nil }
+  { email: "ops@crosstown.delivery", name: "Priya Raman", role: "admin", merchant_slug: nil }
 ]
 
 users.each do |attrs|

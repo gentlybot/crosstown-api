@@ -1,4 +1,4 @@
 class ApplicationMailer < ActionMailer::Base
-  default from: "Handoff <no-reply@handoff.delivery>"
+  default from: "Crosstown <no-reply@crosstown.delivery>"
   layout "mailer"
 end

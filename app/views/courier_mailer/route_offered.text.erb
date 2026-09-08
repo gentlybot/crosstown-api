@@ -9,6 +9,6 @@ A route is available.
   Distance: <%= @route.distance_km %> km
   Pay:      <%= @pay %>
 
-Open the Handoff courier app to accept. The offer closes at <%= @offer.expires_at.in_time_zone(@merchant.timezone).strftime("%-l:%M %p") %>.
+Open the Crosstown courier app to accept. The offer closes at <%= @offer.expires_at.in_time_zone(@merchant.timezone).strftime("%-l:%M %p") %>.
 
-Handoff
+Crosstown

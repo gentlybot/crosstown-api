@@ -1,4 +1,4 @@
-# Gently workspace runtime for the Handoff API.
+# Gently workspace runtime for the Crosstown API.
 # Rails API + Sidekiq worker + a Mailpit inbox, with Postgres and Redis as services.
 # Routes: the portal repo owns "/", this repo owns /api, /sidekiq, and /mail.
 
@@ -22,13 +22,13 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: handoff
-      POSTGRES_PASSWORD: handoff
-      POSTGRES_DB: handoff_development
+      POSTGRES_USER: crosstown
+      POSTGRES_PASSWORD: crosstown
+      POSTGRES_DB: crosstown_development
     connectionEnv:
-      DATABASE_URL: postgres://handoff:handoff@postgres:5432/handoff_development
+      DATABASE_URL: postgres://crosstown:crosstown@postgres:5432/crosstown_development
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U handoff -d handoff_development"]
+      test: ["CMD-SHELL", "pg_isready -U crosstown -d crosstown_development"]
       interval: 2s
       timeout: 3s
       retries: 15

@@ -1,4 +1,4 @@
-# Handoff API: agent guide
+# Crosstown API: agent guide
 
 Rails 7.2 in API mode, Postgres, Sidekiq on Redis, ActionMailer to Mailpit.
 Fictional company; all data is synthetic.
@@ -38,5 +38,5 @@ bin/rubocop
 - **CSV import problems are user-facing strings.** Keep them plain and specific; the portal shows them verbatim.
 - **Geocoding never calls out.** Add streets to `lib/address_bank/streets.rb`; the seeder is idempotent and the test suite seeds the bank once in `before(:suite)`.
 - **Routing is replaceable.** Add an engine under `app/services/routing/engines/`, register it in `Routing::Engine.for`, and give it the shared examples in `spec/services/routing/engines_spec.rb`. Distances are straight-line times a 1.3 detour factor; there is no road network.
-- **Sidekiq does not reload code or schema.** Restart it after adding a job class or running a migration. Its process title is `sidekiq 7.x handoff-api [...]`, not the command you typed, so find it with `pgrep -f 'sidekiq.*handoff-api'` before killing it. A stale worker silently ignores new columns.
+- **Sidekiq does not reload code or schema.** Restart it after adding a job class or running a migration. Its process title is `sidekiq 7.x crosstown-api [...]`, not the command you typed, so find it with `pgrep -f 'sidekiq.*crosstown-api'` before killing it. A stale worker silently ignores new columns.
 - Add new API resources under `api/v1`. An older `v0` namespace with jbuilder views is planned for the legacy story; do not add new clients to it.

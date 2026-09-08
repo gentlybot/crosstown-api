@@ -1,10 +1,10 @@
 require "rails_helper"
 
 RSpec.describe "Sessions", type: :request do
-  let!(:user) { create(:user, email: "maya@example.com", password: "handoff-demo") }
+  let!(:user) { create(:user, email: "maya@example.com", password: "crosstown-demo") }
 
   it "issues a token for a valid email and password" do
-    post "/api/v1/session", params: { email: "Maya@Example.com", password: "handoff-demo" }
+    post "/api/v1/session", params: { email: "Maya@Example.com", password: "crosstown-demo" }
     expect(response).to have_http_status(:created)
     expect(json["token"]).to be_present
     expect(json["user"]["email"]).to eq("maya@example.com")

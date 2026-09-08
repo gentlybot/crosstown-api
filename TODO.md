@@ -1,6 +1,6 @@
-# Handoff TODO
+# Crosstown TODO
 
-Cross-repo backlog for Handoff (this API, `handoff-apps`, `handoff-marketing`).
+Cross-repo backlog for Crosstown (this API, `crosstown-apps`, `crosstown-marketing`).
 
 Ideas for the next slices, roughly in order. One line each on purpose; whoever
 picks one up scopes it.

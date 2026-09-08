@@ -18,7 +18,7 @@ require "action_view/railtie"
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
-module HandoffApi
+module CrosstownApi
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 7.2
@@ -46,6 +46,6 @@ module HandoffApi
 
     # Sidekiq::Web needs a session. API mode strips these, so add them back.
     config.middleware.use ActionDispatch::Cookies
-    config.middleware.use ActionDispatch::Session::CookieStore, key: "_handoff_session"
+    config.middleware.use ActionDispatch::Session::CookieStore, key: "_crosstown_session"
   end
 end

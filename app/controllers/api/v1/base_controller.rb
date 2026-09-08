@@ -37,7 +37,7 @@ module Api
 
       def require_admin!
         return if current_user.admin?
-        render json: { error: "Handoff staff only." }, status: :forbidden
+        render json: { error: "Crosstown staff only." }, status: :forbidden
       end
 
       def current_courier

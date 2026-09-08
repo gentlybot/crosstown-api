@@ -45,7 +45,7 @@ RSpec.describe "Admin batches", type: :request do
     it "is closed to merchant users" do
       get "/api/v1/admin/batches", headers: auth_headers(create(:user))
       expect(response).to have_http_status(:forbidden)
-      expect(json["error"]).to eq("Handoff staff only.")
+      expect(json["error"]).to eq("Crosstown staff only.")
     end
   end
 

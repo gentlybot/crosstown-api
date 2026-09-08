@@ -33,7 +33,7 @@ module Routing
         return Solution.new(routes: [], unassigned: [], engine: name) if points.empty?
         binary = self.class.binary or raise SolverError, "vrp-cli is not installed"
 
-        Dir.mktmpdir("handoff-vrp") do |dir|
+        Dir.mktmpdir("crosstown-vrp") do |dir|
           problem_path = File.join(dir, "problem.json")
           solution_path = File.join(dir, "solution.json")
           File.write(problem_path, JSON.generate(problem(depot, points, max_stops, start_at)))

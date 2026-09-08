@@ -1,7 +1,7 @@
 Hi <%= @order.recipient_name %>,
 
 <% if @stop.delivered? -%>
-Your order from <%= @merchant.business_name %> was handed off at <%= @when %>.
+Your order from <%= @merchant.business_name %> was delivered at <%= @when %>.
 <% if @order.leave_at_door -%>It was left at the door as requested.<% end -%>
 <% if @stop.note.present? -%>Courier note: <%= @stop.note %><% end -%>
 <% else -%>
@@ -9,4 +9,4 @@ Our courier could not deliver your order from <%= @merchant.business_name %> at 
 It is going back to <%= @merchant.business_name %>, who will be in touch about another delivery.
 <% end -%>
 
-Handoff, on behalf of <%= @merchant.business_name %>
+Crosstown, on behalf of <%= @merchant.business_name %>
