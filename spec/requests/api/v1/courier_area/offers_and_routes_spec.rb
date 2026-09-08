@@ -12,8 +12,14 @@ RSpec.describe "Courier offers and routes", type: :request do
     Routing::Planner.new(merchant, date, engine: Routing::Engines::Savings.new).call.first
   end
 
+  before do
+    [ jordan, aisha ].each do |courier|
+      create(:courier_availability, courier: courier, availability_date: date)
+    end
+  end
+
   it "offers a route, lets the first courier accept, runs it, and tells recipients" do
-    # Ops offers the route to every active courier.
+    # Ops offers the route to every active courier available that day.
     perform_enqueued_jobs(except: ExpireOffersJob) do
       post "/api/v1/admin/routes/#{route.id}/offer", headers: auth_headers(admin)
     end
@@ -96,6 +102,18 @@ RSpec.describe "Courier offers and routes", type: :request do
     route.update!(status: "assigned", courier: jordan)
     post "/api/v1/admin/routes/#{route.id}/offer", headers: auth_headers(admin)
     expect(response).to have_http_status(422)
+  end
+
+  it "offers routes only to couriers available on their delivery day" do
+    aisha.courier_availabilities.where(availability_date: date).destroy_all
+
+    perform_enqueued_jobs(except: ExpireOffersJob) do
+      post "/api/v1/admin/routes/#{route.id}/offer", headers: auth_headers(admin)
+    end
+
+    expect(response).to have_http_status(:ok)
+    expect(route.route_offers.pluck(:courier_id)).to contain_exactly(jordan.id)
+    expect(ActionMailer::Base.deliveries.map(&:to).flatten).to contain_exactly(jordan.email)
   end
 
   it "keeps couriers out of merchant and admin areas, and merchants out of courier ones" do

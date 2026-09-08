@@ -86,6 +86,9 @@ puts "Seeded #{Batch.count} batches with #{Order.count} orders."
   user.save!
   courier = Courier.find_or_initialize_by(user: user)
   courier.update!(phone: attrs[:phone], vehicle_type: attrs[:vehicle_type], home_fsa: attrs[:home_fsa], status: "active")
+  [Date.current, Date.tomorrow].each do |date|
+    CourierAvailability.find_or_create_by!(courier: courier, availability_date: date)
+  end
 end
 puts "Seeded #{Courier.count} couriers."
 

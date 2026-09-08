@@ -12,6 +12,7 @@ module Offers
         route = @offer.route.lock!
         raise Unavailable, "This offer has expired." unless @offer.reload.open?
         raise Unavailable, "Another courier took this route." unless route.offered?
+        raise Unavailable, "You are no longer available for this route's delivery day." unless @offer.courier.available_on?(route.delivery_date)
 
         now = Time.current
         @offer.update!(status: "accepted", responded_at: now)

@@ -1,5 +1,5 @@
 module Offers
-  # Sends a planned route to every active courier and starts the clock.
+  # Sends a planned route to every active courier who is available on its delivery day.
   class Dispatch
     OFFER_WINDOW = 20.minutes
 
@@ -11,8 +11,10 @@ module Offers
 
     def call
       raise NotOfferable, "#{@route.display_name} is #{@route.status.humanize.downcase}, not planned." unless @route.planned? || @route.offered?
-      couriers = Courier.active.includes(:user).to_a
-      raise NotOfferable, "There are no active couriers to offer #{@route.display_name} to." if couriers.empty?
+      couriers = Courier.available_on(@route.delivery_date).includes(:user).to_a
+      if couriers.empty?
+        raise NotOfferable, "There are no active couriers available for #{@route.display_name} on #{@route.delivery_date.strftime('%B %-d')}."
+      end
 
       now = Time.current
       pay = Routing::Pay.cents(@route)
