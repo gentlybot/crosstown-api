@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_09_07_210001) do
+ActiveRecord::Schema[7.2].define(version: 2026_09_07_220001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -48,6 +48,16 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_07_210001) do
     t.index ["created_by_id"], name: "index_batches_on_created_by_id"
     t.index ["merchant_id", "created_at"], name: "index_batches_on_merchant_id_and_created_at"
     t.index ["merchant_id"], name: "index_batches_on_merchant_id"
+  end
+
+  create_table "courier_availabilities", force: :cascade do |t|
+    t.bigint "courier_id", null: false
+    t.date "availability_date", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["availability_date"], name: "index_courier_availabilities_on_availability_date"
+    t.index ["courier_id", "availability_date"], name: "idx_on_courier_id_availability_date_e00c8443a2", unique: true
+    t.index ["courier_id"], name: "index_courier_availabilities_on_courier_id"
   end
 
   create_table "couriers", force: :cascade do |t|
@@ -207,6 +217,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_07_210001) do
 
   add_foreign_key "batches", "merchants"
   add_foreign_key "batches", "users", column: "created_by_id"
+  add_foreign_key "courier_availabilities", "couriers"
   add_foreign_key "couriers", "users"
   add_foreign_key "orders", "batches"
   add_foreign_key "orders", "merchants"

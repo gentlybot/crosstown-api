@@ -29,6 +29,7 @@ Rails.application.routes.draw do
       end
 
       namespace :courier, module: :courier_area do
+        resource :availability, controller: "availability", only: %i[show update]
         resources :offers, only: :index do
           post :accept, on: :member
           post :decline, on: :member
