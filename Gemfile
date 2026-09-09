@@ -31,7 +31,7 @@ gem "sidekiq", "~> 7.3"
 # Sidekiq 7.3 still calls ConnectionPool::TimedStack#pop(timeout), which
 # connection_pool 3.0 removed; without this pin the scheduler thread dies at
 # boot and delayed jobs (offer expiry) never run.
-gem "connection_pool", "< 3"
+gem "connection_pool", "< 4"
 # Cross-origin requests from the portal and courier apps.
 gem "rack-cors"
 # Token auth for the SPA clients.
