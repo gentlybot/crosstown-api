@@ -121,7 +121,7 @@ GEM
     jbuilder (2.15.1)
       actionview (>= 7.0.0)
       activesupport (>= 7.0.0)
-    json (2.9.1)
+    json (3.0.0)
     jwt (3.2.0)
       base64
     language_server-protocol (3.17.0.6)
@@ -333,7 +333,7 @@ DEPENDENCIES
   factory_bot_rails
   faker
   jbuilder
-  json (< 2.10)
+  json (< 3.1)
   jwt
   pg (~> 1.1)
   puma (>= 5.0)
