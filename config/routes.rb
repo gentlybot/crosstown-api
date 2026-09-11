@@ -13,6 +13,8 @@ Rails.application.routes.draw do
       resource :me, only: :show, controller: :me
 
       namespace :merchant, module: :merchant_area do
+        resources :delivery_allowances, only: :index
+        resources :delivery_reservations, only: %i[create destroy]
         resources :batches, only: %i[index show create]
         resources :routes, only: :index do
           post :build, on: :collection

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_09_07_210001) do
+ActiveRecord::Schema[7.2].define(version: 2026_09_11_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -59,6 +59,34 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_07_210001) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_couriers_on_user_id", unique: true
+  end
+
+  create_table "delivery_allowances", force: :cascade do |t|
+    t.bigint "merchant_id", null: false
+    t.string "service_type", null: false
+    t.integer "monthly_limit", null: false
+    t.boolean "enabled", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["merchant_id", "service_type"], name: "index_delivery_allowances_on_merchant_id_and_service_type", unique: true
+    t.index ["merchant_id"], name: "index_delivery_allowances_on_merchant_id"
+    t.check_constraint "monthly_limit >= 0"
+  end
+
+  create_table "delivery_reservations", force: :cascade do |t|
+    t.bigint "delivery_allowance_id", null: false
+    t.bigint "user_id", null: false
+    t.date "period_start", null: false
+    t.integer "units", null: false
+    t.string "request_key", null: false
+    t.datetime "cancelled_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["delivery_allowance_id", "period_start"], name: "index_delivery_reservations_on_allowance_period"
+    t.index ["delivery_allowance_id"], name: "index_delivery_reservations_on_delivery_allowance_id"
+    t.index ["user_id", "request_key"], name: "index_delivery_reservations_on_user_id_and_request_key", unique: true
+    t.index ["user_id"], name: "index_delivery_reservations_on_user_id"
+    t.check_constraint "units > 0"
   end
 
   create_table "merchants", force: :cascade do |t|
@@ -192,6 +220,18 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_07_210001) do
     t.index ["route_number"], name: "index_routes_on_route_number", unique: true
   end
 
+  create_table "staff_delivery_limits", force: :cascade do |t|
+    t.bigint "delivery_allowance_id", null: false
+    t.bigint "user_id", null: false
+    t.integer "monthly_limit", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["delivery_allowance_id", "user_id"], name: "idx_on_delivery_allowance_id_user_id_4d11ce0a06", unique: true
+    t.index ["delivery_allowance_id"], name: "index_staff_delivery_limits_on_delivery_allowance_id"
+    t.index ["user_id"], name: "index_staff_delivery_limits_on_user_id"
+    t.check_constraint "monthly_limit >= 0"
+  end
+
   create_table "users", force: :cascade do |t|
     t.bigint "merchant_id"
     t.string "email", null: false
@@ -208,6 +248,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_07_210001) do
   add_foreign_key "batches", "merchants"
   add_foreign_key "batches", "users", column: "created_by_id"
   add_foreign_key "couriers", "users"
+  add_foreign_key "delivery_allowances", "merchants"
+  add_foreign_key "delivery_reservations", "delivery_allowances"
+  add_foreign_key "delivery_reservations", "users"
   add_foreign_key "orders", "batches"
   add_foreign_key "orders", "merchants"
   add_foreign_key "route_offers", "couriers"
@@ -218,5 +261,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_07_210001) do
   add_foreign_key "route_stops", "routes"
   add_foreign_key "routes", "couriers"
   add_foreign_key "routes", "merchants"
+  add_foreign_key "staff_delivery_limits", "delivery_allowances"
+  add_foreign_key "staff_delivery_limits", "users"
   add_foreign_key "users", "merchants"
 end

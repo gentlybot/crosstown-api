@@ -3,6 +3,8 @@ class User < ApplicationRecord
 
   belongs_to :merchant, optional: true
   has_one :courier, dependent: :destroy
+  has_many :staff_delivery_limits, dependent: :destroy
+  has_many :delivery_reservations, dependent: :destroy
 
   ROLES = %w[merchant_admin merchant_staff admin courier].freeze
   enum :role, ROLES.index_by(&:itself), default: "merchant_staff"

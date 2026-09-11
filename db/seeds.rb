@@ -115,3 +115,6 @@ todays_offer = jordan.route_offers.open.joins(:route).where(routes: { delivery_d
 Offers::Accept.new(todays_offer).call if todays_offer
 
 puts "Seeded #{Route.count} routes: #{Route.offered.count} on offer, #{Route.where(courier: jordan).count} taken by #{jordan.name}."
+
+DeliveryAllowances::DemoSeed.call
+puts "Seeded delivery allowances and staff limits."

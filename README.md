@@ -85,6 +85,40 @@ CSV columns are matched loosely: `name`, `phone`, `email`, `address`, `unit`,
 common aliases such as `Customer`, `Phone Number`, `Apt`, `Postal Code`, `Qty`.
 `name`, `address`, and `postal_code` are required columns.
 
+## Delivery allowances
+
+The merchant API has a monthly capacity ledger for same-day deliveries,
+next-day deliveries, return pickups, and redelivery attempts. Each bucket
+counts jobs, not packages or dollars. Reservations allocate capacity only;
+they do not create delivery orders or schedule routes. Existing CSV imports
+do not consume allowances. This is the backend for a future booking flow.
+
+- `GET /api/v1/merchant/delivery_allowances` returns all four services, including
+  disabled ones, with shared merchant and signed-in staff usage and limits.
+- `POST /api/v1/merchant/delivery_reservations` takes `service_type`, integer
+  `units`, and a caller-generated `request_key`. It enforces both limits.
+  Repeat the same key and payload to retry without using capacity twice.
+- `DELETE /api/v1/merchant/delivery_reservations/:id` cancels the signed-in
+  user's own reservation and releases both usage counts. Cancellation is
+  idempotent; retrying a cancelled reservation does not reactivate it.
+
+Personal usage is part of shared merchant usage. `available_to_you` is the
+smaller remaining amount. A null personal limit means no additional cap; zero
+means no personal capacity. Disabled services remain unavailable regardless of
+limits. Buckets cannot borrow from each other. Monthly periods follow the
+merchant's timezone, with no carryover. `blocked_by` distinguishes disabled
+services, exhausted shared allowances, and exhausted personal limits.
+
+Seeds add example allowances without resetting activity. To restore this
+month's allowance data for the two demo merchants, run:
+
+```sh
+bin/rails demo:reset_delivery_allowances
+```
+
+This deletes those merchants' current-month reservations and restores their
+allowance policies. It leaves orders, routes, and prior months alone.
+
 ## Tests
 
 ```sh

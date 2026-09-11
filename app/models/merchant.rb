@@ -4,6 +4,7 @@ class Merchant < ApplicationRecord
   has_many :orders, dependent: :destroy
   has_many :routes, dependent: :destroy
   has_many :route_plans, dependent: :destroy
+  has_many :delivery_allowances, dependent: :destroy
 
   before_validation :assign_slug, on: :create
 
@@ -12,7 +13,7 @@ class Merchant < ApplicationRecord
   validates :cutoff_time, format: { with: /\A\d{2}:\d{2}\z/, message: "must look like 14:00" }
 
   def pickup_address
-    [pickup_address_line, pickup_unit.presence, pickup_city, pickup_postal_code].compact.join(", ")
+    [ pickup_address_line, pickup_unit.presence, pickup_city, pickup_postal_code ].compact.join(", ")
   end
 
   private
