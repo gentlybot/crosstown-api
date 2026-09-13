@@ -47,6 +47,31 @@ Demo sign-ins (password `crosstown-demo` for all):
 | jordan@courier.example | Courier |
 | aisha@courier.example | Courier |
 
+Seeds also create all **24 merchants from `crosstown-mcp`**, with the same
+business names, contact names, and email addresses. Each contact can sign in
+as a merchant admin with `crosstown-demo`, for example
+`casey.cole@bloom.example`, `briar.bell@corner.example`, or
+`cameron.clay@cedar.example`. Existing passwords are preserved on reruns.
+
+The roster is in [db/seeds/merchants.json](db/seeds/merchants.json), a snapshot
+of the MCP business scenario v1.0.0 with synthetic Toronto pickup locations.
+Each row maps its `mcp_customer_id` to the Rails merchant `slug`; MCP IDs and
+segments are fixture metadata, not database columns. Keep the names and
+contacts aligned with `crosstown-mcp/scenarios/index.ts` when editing the roster.
+The API seeds work without the MCP repo or service present.
+
+To add or refresh just these merchants and their logins on an existing dev
+database, without changing batches, orders, routes, or allowance activity:
+
+```sh
+bin/rails demo:seed_merchants
+```
+
+Bloom & Stem and Corner Loaf keep their existing slugs, IDs, pickup locations,
+and the original logins above. The three delivery batches and allowance
+examples still belong to those two merchants. The other merchants start with
+empty delivery histories; billing, support, and analytics history remain in MCP.
+
 ## API (v1)
 
 All JSON. Authenticated calls send `Authorization: Bearer <token>`.

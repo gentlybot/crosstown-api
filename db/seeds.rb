@@ -1,31 +1,12 @@
 # Idempotent: safe to rerun on every sandbox rebuild.
-PASSWORD = "crosstown-demo"
+PASSWORD = Demo::MerchantSeed::PASSWORD
 
 bank = AddressBank::Seeder.run
 puts "Address bank: #{bank[:total]} addresses (#{bank[:inserted]} new)."
 
-merchants = {
-  "bloom-and-stem" => {
-    business_name: "Bloom & Stem", contact_name: "Maya Chen", contact_email: "maya@bloomandstem.example",
-    phone: "416-555-0199", pickup_address_line: "641 Queen St W", pickup_city: "Toronto", pickup_postal_code: "M5V 2B7",
-    pickup_lat: 43.6472, pickup_lng: -79.4046, cutoff_time: "14:00"
-  },
-  "corner-loaf" => {
-    business_name: "Corner Loaf Bakery", contact_name: "Devin Osei", contact_email: "devin@cornerloaf.example",
-    phone: "416-555-0134", pickup_address_line: "1122 Danforth Ave", pickup_city: "Toronto", pickup_postal_code: "M4J 1M3",
-    pickup_lat: 43.6836, pickup_lng: -79.3334, cutoff_time: "11:00"
-  }
-}
-
-merchants.each do |slug, attrs|
-  merchant = Merchant.find_or_initialize_by(slug: slug)
-  merchant.update!(attrs)
-end
+Demo::MerchantSeed.call
 
 users = [
-  { email: "maya@bloomandstem.example", name: "Maya Chen", role: "merchant_admin", merchant_slug: "bloom-and-stem" },
-  { email: "sam@bloomandstem.example", name: "Sam Whitfield", role: "merchant_staff", merchant_slug: "bloom-and-stem" },
-  { email: "devin@cornerloaf.example", name: "Devin Osei", role: "merchant_admin", merchant_slug: "corner-loaf" },
   { email: "ops@crosstown.delivery", name: "Priya Raman", role: "admin", merchant_slug: nil }
 ]
 
@@ -38,7 +19,7 @@ users.each do |attrs|
   user.save!
 end
 
-puts "Seeded #{Merchant.count} merchants and #{User.count} users. Password for all: #{PASSWORD}"
+puts "Seeded #{Merchant.count} merchants and #{User.count} users. Password for new demo accounts: #{PASSWORD}"
 
 # Demo batches so the ops view has something to show on first sign-in. Keyed by
 # name per merchant; delivery dates are refreshed on every run so they stay
@@ -66,7 +47,7 @@ seeded_batches.each do |attrs|
     batch.save!
     # Batches imported before the address bank existed get placed on the map,
     # unless they have already been routed.
-    unplaced = batch.orders.where(geocode_precision: nil).where.not(address_line: [nil, ""]).exists?
+    unplaced = batch.orders.where(geocode_precision: nil).where.not(address_line: [ nil, "" ]).exists?
     routed = RouteStop.joins(:order).where(orders: { batch_id: batch.id }).exists?
     Batches::CsvImporter.new(batch).call if unplaced && !routed
   end
@@ -97,18 +78,18 @@ puts "Seeded #{Courier.count} couriers."
 ops = User.find_by!(email: "ops@crosstown.delivery")
 jordan = Courier.joins(:user).find_by!(users: { email: "jordan@courier.example" })
 
-seeded_batches.map { |b| [b[:merchant_slug], b[:delivery_date]] }.uniq.each do |slug, delivery_date|
+seeded_batches.map { |b| [ b[:merchant_slug], b[:delivery_date] ] }.uniq.each do |slug, delivery_date|
   merchant = Merchant.find_by!(slug: slug)
   next if merchant.routes.where(delivery_date: delivery_date).where.not(status: "planned").exists?
   Routing::Planner.new(merchant, delivery_date, requested_by: ops).call
 end
 
-Route.planned.where(delivery_date: [Date.current, Date.tomorrow]).find_each do |route|
+Route.planned.where(delivery_date: [ Date.current, Date.tomorrow ]).find_each do |route|
   Offers::Dispatch.new(route).call
   # Seeded offers stay open until the route is due to leave (at least a few
   # hours), not the usual 20 minutes, so the inbox is not empty by the time
   # someone opens the demo.
-  route.route_offers.offered.update_all(expires_at: [route.start_at, 6.hours.from_now].max, updated_at: Time.current)
+  route.route_offers.offered.update_all(expires_at: [ route.start_at, 6.hours.from_now ].max, updated_at: Time.current)
 end
 
 todays_offer = jordan.route_offers.open.joins(:route).where(routes: { delivery_date: Date.current, status: "offered" }).order("routes.route_number").first
