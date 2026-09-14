@@ -24,7 +24,7 @@ gem "tzinfo-data", platforms: %i[ windows jruby ]
 gem "bootsnap", require: false
 
 # json 2.10 dropped the quirks_mode option that ActiveSupport 7.2 still passes.
-gem "json", "< 2.10"
+gem "json", "< 3.1"
 
 # Background jobs and the Sidekiq web UI (mounted at /sidekiq).
 gem "sidekiq", "~> 7.3"
