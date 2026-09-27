@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_09_27_120000) do
+ActiveRecord::Schema[7.2].define(version: 2026_09_27_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -147,6 +147,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_27_120000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.check_constraint "default_per_stop_price_cents > 0", name: "pricing_settings_default_per_stop_price_positive"
+    t.check_constraint "id = 1", name: "pricing_settings_singleton_id"
   end
 
   create_table "route_offers", force: :cascade do |t|

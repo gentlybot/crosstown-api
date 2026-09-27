@@ -9,10 +9,12 @@ module Api
         end
 
         def update
-          PricingSetting.current.update!(default_per_stop_price_cents: pricing_params[:default_per_stop_price_cents]) if pricing_params.key?(:default_per_stop_price_cents)
+          ActiveRecord::Base.transaction do
+            PricingSetting.current.update!(default_per_stop_price_cents: pricing_params[:default_per_stop_price_cents]) if pricing_params.key?(:default_per_stop_price_cents)
 
-          pricing_params.fetch(:merchant_prices, []).each do |price|
-            Merchant.find(price[:merchant_id]).update!(per_stop_price_cents: price[:per_stop_price_cents].presence)
+            pricing_params.fetch(:merchant_prices, []).each do |price|
+              Merchant.find(price[:merchant_id]).update!(per_stop_price_cents: price[:per_stop_price_cents].presence)
+            end
           end
 
           render json: payload
