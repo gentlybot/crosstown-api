@@ -11,6 +11,7 @@ class Merchant < ApplicationRecord
   validates :business_name, :contact_email, :pickup_address_line, :pickup_city, :pickup_postal_code, presence: true
   validates :slug, presence: true, uniqueness: true, format: { with: /\A[a-z0-9-]+\z/ }
   validates :cutoff_time, format: { with: /\A\d{2}:\d{2}\z/, message: "must look like 14:00" }
+  validates :per_stop_price_cents, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
 
   def pickup_address
     [ pickup_address_line, pickup_unit.presence, pickup_city, pickup_postal_code ].compact.join(", ")

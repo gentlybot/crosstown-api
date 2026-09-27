@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_09_11_120000) do
+ActiveRecord::Schema[7.2].define(version: 2026_09_27_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -105,7 +105,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_11_120000) do
     t.string "timezone", default: "America/Toronto", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "per_stop_price_cents"
     t.index ["slug"], name: "index_merchants_on_slug", unique: true
+    t.check_constraint "per_stop_price_cents IS NULL OR per_stop_price_cents > 0", name: "merchants_per_stop_price_cents_positive"
   end
 
   create_table "orders", force: :cascade do |t|
@@ -132,10 +134,19 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_11_120000) do
     t.string "geocode_precision"
     t.datetime "geocoded_at"
     t.string "fsa"
+    t.integer "settled_price_cents"
     t.index ["batch_id", "row_number"], name: "index_orders_on_batch_id_and_row_number", unique: true
     t.index ["batch_id"], name: "index_orders_on_batch_id"
     t.index ["merchant_id", "status"], name: "index_orders_on_merchant_id_and_status"
     t.index ["merchant_id"], name: "index_orders_on_merchant_id"
+    t.check_constraint "settled_price_cents IS NULL OR settled_price_cents > 0", name: "orders_settled_price_cents_positive"
+  end
+
+  create_table "pricing_settings", force: :cascade do |t|
+    t.integer "default_per_stop_price_cents", default: 500, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.check_constraint "default_per_stop_price_cents > 0", name: "pricing_settings_default_per_stop_price_positive"
   end
 
   create_table "route_offers", force: :cascade do |t|

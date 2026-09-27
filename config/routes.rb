@@ -22,6 +22,7 @@ Rails.application.routes.draw do
       end
 
       namespace :admin, module: :admin_area do
+        resource :pricing, only: %i[show update], controller: :pricing
         resources :batches, only: %i[index show]
         resources :merchants, only: :index
         resources :routes, only: %i[index show] do

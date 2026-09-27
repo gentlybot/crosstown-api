@@ -57,6 +57,15 @@ RSpec.describe "Admin batches", type: :request do
       expect(json["batch"]["merchant"]["business_name"]).to eq("Corner Loaf")
       expect(json["batch"]["orders"].size).to eq(7)
     end
+
+    it "includes a settled order's locked price" do
+      batch = imported(loaf, name: "Settled bread", delivery_date: Date.current)
+      order = batch.orders.first
+      order.update!(status: "delivered", settled_price_cents: 650)
+
+      get "/api/v1/admin/batches/#{batch.id}", headers: headers
+      expect(json["batch"]["orders"].find { |item| item["id"] == order.id }["settled_price_cents"]).to eq(650)
+    end
   end
 
   describe "GET /api/v1/admin/merchants" do

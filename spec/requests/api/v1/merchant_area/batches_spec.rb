@@ -76,4 +76,14 @@ RSpec.describe "Merchant batches", type: :request do
       expect(response).to have_http_status(:not_found)
     end
   end
+
+  describe "GET /api/v1/merchant/batches/:id" do
+    it "includes a settled order's locked price" do
+      batch = create(:batch, merchant: user.merchant)
+      order = user.merchant.orders.create!(batch: batch, row_number: 1, quantity: 1, status: "delivered", settled_price_cents: 575)
+
+      get "/api/v1/merchant/batches/#{batch.id}", headers: headers
+      expect(json["batch"]["orders"].find { |item| item["id"] == order.id }["settled_price_cents"]).to eq(575)
+    end
+  end
 end

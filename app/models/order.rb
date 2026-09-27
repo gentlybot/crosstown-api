@@ -9,6 +9,7 @@ class Order < ApplicationRecord
 
   validates :row_number, presence: true, uniqueness: { scope: :batch_id }
   validates :quantity, numericality: { only_integer: true, greater_than_or_equal_to: 1 }
+  validates :settled_price_cents, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
 
   def full_address
     [address_line, unit.presence, city, postal_code].compact.join(", ")

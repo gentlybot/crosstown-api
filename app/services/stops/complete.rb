@@ -25,7 +25,9 @@ module Stops
       now = Time.current
       Route.transaction do
         @stop.update!(status: @status, completed_at: now, note: @note, failure_reason: @status == "failed" ? @failure_reason : nil, photo_data: @photo_data)
-        @stop.order.update!(status: @status)
+        @stop.order.with_lock do
+          @stop.order.update!(status: @status, settled_price_cents: @stop.order.settled_price_cents || Pricing::PerStop.cents_for(@stop.order.merchant))
+        end
         @stop.route.settle_if_finished!
       end
       RecipientMailer.stop_update(@stop).deliver_later if @stop.order.recipient_email.present?

@@ -16,6 +16,7 @@ module OrderSerializer
       quantity: order.quantity,
       leave_at_door: order.leave_at_door,
       status: order.status,
+      settled_price_cents: order.settled_price_cents,
       problems: order.problems,
       lat: order.lat&.to_f,
       lng: order.lng&.to_f,
